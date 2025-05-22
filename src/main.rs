@@ -21,11 +21,13 @@ struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 #[tokio::main]
 async fn main() {
     
+    // Create struct to store all plane data and share it
     let plane_data_db = SharedDataDb::new();
     let shared_plane_data_db = Arc::new(Mutex::new(plane_data_db));
     let tokio_plane_data_db = shared_plane_data_db.clone();
     let bevy_plane_data_db = shared_plane_data_db.clone();
     
+    // Receive ADS-B data from dump1090
     tokio::spawn(async move {
         let _a = connect_dump1090_sbs(tokio_plane_data_db).await;
     });

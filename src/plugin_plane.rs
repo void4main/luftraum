@@ -107,6 +107,10 @@ fn list_plane_ids(mut commands: Commands,
     timer.0.tick(time.delta());
     if timer.0.just_finished() {
         let read_tmp = read.0.lock().unwrap();
-        read_tmp.get_planes_id();
+        let list = read_tmp.get_planes_id();
+        for plane_id in list {
+            let plane_id_string = plane_id.to_string();
+            println!("PlaneId: {:?} - Pos: {:?}", plane_id, read_tmp.get_latest_pos(plane_id_string));
+        }
     }
 }

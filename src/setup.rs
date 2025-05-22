@@ -1,19 +1,13 @@
 use ::bevy::pbr::wireframe::{Wireframe, WireframePlugin};
-use bevy::color::palettes::css::{RED, WHITE};
+use bevy::color::palettes::css::WHITE;
 use bevy::color::palettes::tailwind::*;
-// use bevy::core_pipeline::{
-//     Skybox,
-//     bloom::Bloom,
-//     prepass::{DepthPrepass, NormalPrepass},
-// };
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use crate::Channel;
 use crate::math::*;
 use crate::plugin_plane::*;
 use crate::srtm::*;
-use crate::terrain_colorspectrum::*;
+use crate::terrain_color_spectrum::*;
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(PanOrbitCameraPlugin)
@@ -29,40 +23,7 @@ pub fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    rec: Res<Channel>,
 ) {
-    // Camera
-    // commands.spawn((
-    //     (
-    //         Camera3d::default(),
-    //         Transform::from_xyz(0., 1.5, 6.).looking_at(Vec3::ZERO, Vec3::Y),
-    //     ),
-    //     // Skybox {
-    //     //     brightness: 1000.0,
-    //     //     image: asset_server
-    //     //         .load("kloppenheim_06_puresky_4k_diffuse/kloppenheim_06_puresky_4k_specular.ktx2"),
-    //     //     rotation: Default::default(),
-    //     // },
-    //     // EnvironmentMapLight {
-    //     //     diffuse_map: asset_server
-    //     //         .load("kloppenheim_06_puresky_4k_diffuse/kloppenheim_06_puresky_4k_diffuse.ktx2"),
-    //     //     specular_map: asset_server
-    //     //         .load("kloppenheim_06_puresky_4k_diffuse/kloppenheim_06_puresky_4k_specular.ktx2"),
-    //     //     intensity: 1000.0,
-    //     //     rotation: Default::default(),
-    //     // },
-    //     // Bloom::NATURAL,
-    //     PanOrbitCamera::default(),
-    //     // DepthOfField {
-    //     //     mode: DepthOfFieldMode::Gaussian,
-    //     //     focal_distance: 40.,
-    //     //     aperture_f_stops: 1.0 / 8.0,
-    //     //     ..default()
-    //     // },
-    //     DepthPrepass,
-    //     NormalPrepass,
-    // ));
-    println!("Setup msg: {:?}", rec.0.try_recv() );
     // Light
     commands.spawn((
         DirectionalLight::default(),
@@ -95,23 +56,23 @@ pub fn setup(
     );
 
     // Transform heights of mesh
-    if let Some(VertexAttributeValues::Float32x3(positions)) =
-        terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
-    {
-        let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
-        let scale = pix_meter;
-        for pos in positions.iter_mut().enumerate() {
-            pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
-        }
-
-        // Add colour scheme
-        let colors: Vec<[f32; 4]> = positions
-            .iter()
-            .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
-            .collect();
-        terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-        terrain.compute_normals();
-    }
+    // if let Some(VertexAttributeValues::Float32x3(positions)) =
+    //     terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
+    // {
+    //     let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
+    //     let scale = pix_meter;
+    //     for pos in positions.iter_mut().enumerate() {
+    //         pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
+    //     }
+    // 
+    //     // Add colour scheme
+    //     let colors: Vec<[f32; 4]> = positions
+    //         .iter()
+    //         .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
+    //         .collect();
+    //     terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
+    //     terrain.compute_normals();
+    // }
 
     // Spawn terrain
     commands.spawn((
