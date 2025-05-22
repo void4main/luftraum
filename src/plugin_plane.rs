@@ -1,16 +1,20 @@
-use bevy::prelude::*;
-use std::time::Duration;
-use std::f32::consts::PI;
+use crate::ShareStruct;
 use crate::math::*;
-use crate::{ShareStruct};
+use bevy::color::palettes::tailwind::RED_400;
+use bevy::prelude::*;
+use std::f32::consts::PI;
+use std::time::Duration;
 
 #[derive(Resource)]
 struct TimerResource(Timer);
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_plane)
-        .insert_resource(TimerResource(Timer::new(Duration::from_secs(10), TimerMode::Repeating)))
-        .add_systems(Update, (update_planes_data, update_planes, list_plane_ids));
+        .insert_resource(TimerResource(Timer::new(
+            Duration::from_secs(10),
+            TimerMode::Repeating,
+        )))
+        .add_systems(Update, (update_planes_data, list_plane_ids, update_route));
 }
 
 #[derive(Component, Debug)]
@@ -87,30 +91,45 @@ pub fn update_planes_data(mut query: Query<&mut Plane, With<Plane>>) {
     }
 }
 
-pub fn update_route(
-    read: Res<ShareStruct>,
-    mut gizmos: Gizmos
-) {
+pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos) {
     // let mut data = read.0.lock().unwrap();
-    // for i in data.iter() {
-    //     let lat1 = map_range(i.0, 50.0, 55.0, 1000.0, -1000.0);
-    //     let lon1 = map_range(i.1, 5.0, 10.0, -1000.0, 1000.0);
-    //     let scale = 0.00361;
-    //     gizmos.cross(Vec3::new(lon1, i.2 * scale * 0.3048, lat1), 1.0, RED_400);
-    // }
+    let read_tmp = read.0.lock().unwrap();
+    let list = read_tmp.get_planes_id();
+
+    // TODO: Distribute map ranges
+    for plane in list {
+        for plane_data in read_tmp.get_latest_pos(plane.to_string()) {
+            let lat1 = map_range(plane_data.0, 50.0, 55.0, 1000.0, -1000.0);
+            let lon1 = map_range(plane_data.1, 5.0, 10.0, -1000.0, 1000.0);
+            // TODO: Distribute scale factor
+            let scale = 0.00361;
+            gizmos.cross(
+                Vec3::new(lon1, plane_data.2 * scale * 0.3048, lat1),
+                5.0,
+                RED_400,
+            );
+        }
+    }
 }
 
-fn list_plane_ids(mut commands: Commands, 
-                  time: Res<Time>, 
-                  mut timer: ResMut<TimerResource>,
-                  read: Res<ShareStruct>) {
+fn list_plane_ids(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut timer: ResMut<TimerResource>,
+    read: Res<ShareStruct>,
+) {
     timer.0.tick(time.delta());
     if timer.0.just_finished() {
         let read_tmp = read.0.lock().unwrap();
         let list = read_tmp.get_planes_id();
         for plane_id in list {
             let plane_id_string = plane_id.to_string();
-            println!("PlaneId: {:?} - Pos: {:?}", plane_id, read_tmp.get_latest_pos(plane_id_string));
+            // Data dump to see what's going on
+            println!(
+                "PlaneId: {:?} - Pos: {:?}",
+                plane_id,
+                read_tmp.get_latest_pos(plane_id_string)
+            );
         }
     }
 }

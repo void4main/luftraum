@@ -56,23 +56,23 @@ pub fn setup(
     );
 
     // Transform heights of mesh
-    // if let Some(VertexAttributeValues::Float32x3(positions)) =
-    //     terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
-    // {
-    //     let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
-    //     let scale = pix_meter;
-    //     for pos in positions.iter_mut().enumerate() {
-    //         pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
-    //     }
-    // 
-    //     // Add colour scheme
-    //     let colors: Vec<[f32; 4]> = positions
-    //         .iter()
-    //         .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
-    //         .collect();
-    //     terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-    //     terrain.compute_normals();
-    // }
+    if let Some(VertexAttributeValues::Float32x3(positions)) =
+        terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
+    {
+        let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
+        let scale = pix_meter;
+        for pos in positions.iter_mut().enumerate() {
+            pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
+        }
+    
+        // Add colour scheme
+        let colors: Vec<[f32; 4]> = positions
+            .iter()
+            .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
+            .collect();
+        terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
+        terrain.compute_normals();
+    }
 
     // Spawn terrain
     commands.spawn((

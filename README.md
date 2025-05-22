@@ -1,14 +1,14 @@
 # Luftraum
 (Project for me to learn Rust and Bevy.)
 
-Application to show live plane positions in 3D.
+Application to show live air traffic in 3D.
 * Uses SRTM terrain data to show environment
 * and dump1090 to get local ADS-B plane data
 
 Start ./dump1090 --device-type hackrf --net-sbs-port 30003 and afterwards start luftraum.
-Luftraum connects to 127.0.0.1:30003 statically.
+Luftraum connects to 127.0.0.1:30003 statically by now.
 
-Get your SRTM ASCII data here:
+I got my SRTM ASCII data here:
 ### SRTM data source
 Jarvis A., H.I. Reuter, A.  Nelson, E. Guevara, 2008, Hole-filled  seamless SRTM
 data V4, International  Centre for Tropical  Agriculture (CIAT), available  from

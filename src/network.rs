@@ -25,6 +25,7 @@ pub async fn connect_dump1090_sbs(
                 // println!("ORIG: {:?}", message);
 
                 // Split message into 22 pieces
+                // TODO: Check len
                 let vec: Vec<&str> = message.split(',').collect();
 
                 // Map each field to needed data type

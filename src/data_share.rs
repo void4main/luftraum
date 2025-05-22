@@ -49,7 +49,7 @@ impl SharedDataDb {
 
     pub fn get_planes_id(&self) -> Vec<&str> {
         let list: Vec<&str> = self.plane_db.keys().map(|s| s.as_str()).collect();
-        println!("Data: {:?}", list);
+        //println!("Data: {:?}", list);
         list
     }
 
