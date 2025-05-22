@@ -1,25 +1,17 @@
 use bevy::prelude::*;
+use std::time::Duration;
 use std::f32::consts::PI;
-use std::collections::HashMap;
-use bevy::color::palettes::tailwind::*;
 use crate::math::*;
-use crate::SharedData;
+use crate::{ShareStruct};
+
+#[derive(Resource)]
+struct TimerResource(Timer);
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_plane)
-        .add_systems(Update, (update_planes_data, update_planes, update_route));
+        .insert_resource(TimerResource(Timer::new(Duration::from_secs(10), TimerMode::Repeating)))
+        .add_systems(Update, (update_planes_data, update_planes, list_plane_ids));
 }
-
-pub struct PlaneDB {
-    /// PlaneDB struct to collect all plane data.
-    /// Key is the Aircraft Mode S hexadecimal code (HexIdent), Field 5
-    pub plane_db: HashMap<String, Plane>,
-}
-
-// impl PlaneDB {
-//     pub fn new() -> Self {}
-// }
-
 
 #[derive(Component, Debug)]
 pub struct Plane {
@@ -96,14 +88,25 @@ pub fn update_planes_data(mut query: Query<&mut Plane, With<Plane>>) {
 }
 
 pub fn update_route(
-    read: Res<SharedData>,
+    read: Res<ShareStruct>,
     mut gizmos: Gizmos
 ) {
-    let mut data = read.0.lock().unwrap();
-    for i in data.iter() {
-        let lat1 = map_range(i.0, 50.0, 55.0, 1000.0, -1000.0);
-        let lon1 = map_range(i.1, 5.0, 10.0, -1000.0, 1000.0);
-        let scale = 0.00361;
-        gizmos.cross(Vec3::new(lon1, i.2 * scale * 0.3048, lat1), 1.0, RED_400);
+    // let mut data = read.0.lock().unwrap();
+    // for i in data.iter() {
+    //     let lat1 = map_range(i.0, 50.0, 55.0, 1000.0, -1000.0);
+    //     let lon1 = map_range(i.1, 5.0, 10.0, -1000.0, 1000.0);
+    //     let scale = 0.00361;
+    //     gizmos.cross(Vec3::new(lon1, i.2 * scale * 0.3048, lat1), 1.0, RED_400);
+    // }
+}
+
+fn list_plane_ids(mut commands: Commands, 
+                  time: Res<Time>, 
+                  mut timer: ResMut<TimerResource>,
+                  read: Res<ShareStruct>) {
+    timer.0.tick(time.delta());
+    if timer.0.just_finished() {
+        let read_tmp = read.0.lock().unwrap();
+        read_tmp.get_planes_id();
     }
 }
