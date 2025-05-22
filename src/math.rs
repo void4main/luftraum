@@ -42,15 +42,12 @@ pub fn get_pixel_pos(lat: f32, lon: f32, p_x: f32, p_y: f32, cell_rows: usize, c
     let lly_max = lly * cell_dist * cell_rows as f32 + 0.5 * lly;
     let mut p_pos_x = map_range(lat, llx, llx_max, -p_x/2.0, p_x/2.0);
     let mut p_pos_y = map_range(lon, lly, lly_max, -p_y/2.0, p_y/2.0);
-    // TODO: Add lower bound borders
-    //if p_pos_x > p_x {p_pos_x = p_x};
-    //if p_pos_y > p_y {p_pos_y = p_y};
     (p_pos_x, p_pos_y)
 }
 
 /// Return value is bevy pixel equivalent from meter 
 pub fn get_pix_m(meter: f32, rows: usize, rows_width_deg: f32, pixel_plane_y: f32) -> f32 {
-    // TODO: Check if 'accurate'
+    // TODO: Check if 'accurate' enough
     const METER_DEG: f32 = 111227.5;
     let plane_length_m = rows_width_deg * METER_DEG * rows as f32;
     let pix_per_meter = pixel_plane_y / plane_length_m;
@@ -93,8 +90,8 @@ impl Convertable for f32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::terrain_colorspectrum::ColorSpectrum::ImhofModified;
-    use crate::terrain_colorspectrum::get_height_color;
+    use crate::terrain_color_spectrum::ColorSpectrum::ImhofModified;
+    use crate::terrain_color_spectrum::get_height_color;
     use super::*;
 
     #[test]
