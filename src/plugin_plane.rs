@@ -4,7 +4,6 @@ use crate::ShareStruct;
 use crate::math::*;
 use bevy::color::palettes::tailwind::RED_400;
 use bevy::prelude::*;
-use bevy_panorbit_camera::FocusBoundsShape::{Cuboid, Sphere};
 
 #[derive(Resource)]
 struct TimerResource(Timer);
@@ -48,10 +47,6 @@ impl Plane {
             longitude: None,
             rssi: None,
         }
-    }
-
-    pub fn set_latitude(&mut self, latitude: Option<f32>) {
-        self.latitude = latitude;
     }
 }
 
@@ -110,7 +105,6 @@ pub fn update_planes(
 }
 
 pub fn create_planes(
-    time: Res<Time>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -127,7 +121,6 @@ pub fn create_planes(
     for plane_id in plane_list {
         let plane_id_tmp = String::from(plane_id);
         if !spawned_list.contains(&plane_id_tmp) {
-            //println!("Create plane {:?}", plane_id);
             commands.spawn((
                 Plane::new(plane_id_tmp),
                 Mesh3d(meshes.add(Capsule3d::new(1.0, 1.0))),
@@ -159,7 +152,6 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos) {
 }
 
 fn list_plane_ids(
-    mut commands: Commands,
     time: Res<Time>,
     mut timer: ResMut<TimerResource>,
     read: Res<ShareStruct>,
