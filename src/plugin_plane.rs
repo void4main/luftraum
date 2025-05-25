@@ -1,9 +1,11 @@
-use crate::ShareStruct;
-use crate::math::*;
-use bevy::color::palettes::tailwind::RED_400;
-use bevy::prelude::*;
 use std::f32::consts::PI;
 use std::time::Duration;
+
+use bevy::color::palettes::tailwind::RED_400;
+use bevy::prelude::*;
+
+use crate::ShareStruct;
+use crate::math::*;
 
 #[derive(Resource)]
 struct TimerResource(Timer);
@@ -14,7 +16,10 @@ pub fn plugin(app: &mut App) {
             Duration::from_secs(10),
             TimerMode::Repeating,
         )))
-        .add_systems(Update, (update_planes_data, list_plane_ids, update_route));
+        .add_systems(
+            Update,
+            (create_planes, update_planes, list_plane_ids, update_route),
+        );
 }
 
 #[derive(Component, Debug)]
@@ -56,43 +61,90 @@ pub fn spawn_plane(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn((
-        Plane::new("aacc".to_string()),
-        Mesh3d(meshes.add(Capsule3d::new(1.2, 0.3))),
-        MeshMaterial3d(materials.add(Color::WHITE)),
-        Transform::from_xyz(-1.0, 2.0, 1.5).with_rotation(Quat::from_rotation_y(PI / 3.0)),
-    ));
+    // commands.spawn((
+    //     Plane::new("aacc".to_string()),
+    //     Mesh3d(meshes.add(Capsule3d::new(1.2, 0.3))),
+    //     MeshMaterial3d(materials.add(Color::WHITE)),
+    //     Transform::from_xyz(-1.0, 2.0, 1.5).with_rotation(Quat::from_rotation_y(PI / 3.0)),
+    // ));
+    // commands.spawn((
+    //     Plane::new("bbbb".to_string()),
+    //     Mesh3d(meshes.add(Capsule3d::new(1.2, 0.3))),
+    //     MeshMaterial3d(materials.add(Color::WHITE)),
+    //     Transform::from_xyz(-1.0, 4.0, 1.5).with_rotation(Quat::from_rotation_y(PI / 3.0)),
+    // ));
 }
 
-// Update all planes positions
+// Create update all planes positions
+// TODO: Divide create and update etc.
 pub fn update_planes(
     time: Res<Time>,
-    mut query: Query<&mut Transform, With<Plane>>,
-    mut gizmos: Gizmos,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query: Query<(&mut Transform, Entity, &mut Plane)>,
+    read: Res<ShareStruct>,
 ) {
-    for mut transform in query.iter_mut() {
-        // Circle around center
-        transform.translation.z = ops::sin(time.elapsed_secs()) * 2.0;
-        transform.translation.x = ops::cos(time.elapsed_secs()) * 2.0;
-        //let angle = player_transform.rotation.to_euler(EulerRot::ZYX).0;
-        let angle = transform.rotation.x;
-        let m_test =
-            angle_rad_between(transform.translation.x, transform.translation.z, 0.0, -10.0);
-        transform.rotate_y(angle - m_test);
+    // TODO: Beautify code
+    let read_tmp = read.0.lock().unwrap();
+    // TODO: Clone to end lock?
+    let plane_list = read_tmp.get_planes_id();
+
+    // Get all existing plane_id in database
+    for plane_id in plane_list {
+        let plane_id_temp = String::from(plane_id);
+        //println!("plane_id: {}", plane_id);
+        'inner: for mut plane in query.iter_mut() {
+            if plane_id_temp == plane.2.hex {
+                //println!("Update plane {:?}", plane_id);
+                // Update position if all Some has data
+                let pos = read_tmp.get_latest_pos(plane_id.to_string());
+                if pos.is_some() {
+                    let lat = pos.unwrap().0;
+                    let lon = pos.unwrap().1;
+                    let lat1 = map_range(lat, 50.0, 55.0, 1000.0, -1000.0);
+                    let lon1 = map_range(lon, 5.0, 10.0, -1000.0, 1000.0);
+                    let height = pos.unwrap().2;
+
+                    // TODO: Distribute scale factor
+                    let scale = 0.00361;
+                    plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1);
+                }
+                break 'inner;
+            }
+        }
     }
 }
+pub fn create_planes(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query: Query<(&mut Transform, Entity, &mut Plane)>,
+    read: Res<ShareStruct>,
+) {
+    let read_tmp = read.0.lock().unwrap();
+    let plane_list = read_tmp.get_planes_id();
+    let spawned_list = query
+        .iter()
+        .map(|e| e.2.hex.clone())
+        .collect::<Vec<String>>();
 
-pub fn update_planes_data(mut query: Query<&mut Plane, With<Plane>>) {
-    if query.is_empty() {
-        return;
-    };
-    for mut plane_query in query.iter_mut() {
-        plane_query.heading = Some(140.0);
+    for plane_id in plane_list {
+        let plane_id_tmp = String::from(plane_id);
+        if !spawned_list.contains(&plane_id_tmp) {
+            //println!("Create plane {:?}", plane_id);
+            commands.spawn((
+                Plane::new(plane_id_tmp),
+                Mesh3d(meshes.add(Capsule3d::new(2.0, 2.0))),
+                MeshMaterial3d(materials.add(Color::WHITE)),
+                Transform::from_xyz(-1000.0, 0.0, 0.0),
+            ));
+        }
     }
 }
 
 pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos) {
-    // let mut data = read.0.lock().unwrap();
     let read_tmp = read.0.lock().unwrap();
     let list = read_tmp.get_planes_id();
 
@@ -125,11 +177,11 @@ fn list_plane_ids(
         for plane_id in list {
             let plane_id_string = plane_id.to_string();
             // Data dump to see what's going on
-            println!(
-                "PlaneId: {:?} - Pos: {:?}",
-                plane_id,
-                read_tmp.get_latest_pos(plane_id_string)
-            );
+            // println!(
+            //     "PlaneId: {:?} - Pos: {:?}",
+            //     plane_id,
+            //     read_tmp.get_latest_pos(plane_id_string)
+            // );
         }
     }
 }
