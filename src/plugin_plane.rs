@@ -1,11 +1,10 @@
-use std::f32::consts::PI;
 use std::time::Duration;
 
+use crate::ShareStruct;
+use crate::math::*;
 use bevy::color::palettes::tailwind::RED_400;
 use bevy::prelude::*;
 use bevy_panorbit_camera::FocusBoundsShape::{Cuboid, Sphere};
-use crate::ShareStruct;
-use crate::math::*;
 
 #[derive(Resource)]
 struct TimerResource(Timer);
@@ -78,10 +77,6 @@ pub fn spawn_plane(
 // Create update all planes positions
 // TODO: Divide create and update etc.
 pub fn update_planes(
-    time: Res<Time>,
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut query: Query<(&mut Transform, Entity, &mut Plane)>,
     read: Res<ShareStruct>,
 ) {
@@ -93,10 +88,8 @@ pub fn update_planes(
     // Get all existing plane_id in database
     for plane_id in plane_list {
         let plane_id_temp = String::from(plane_id);
-        //println!("plane_id: {}", plane_id);
         'inner: for mut plane in query.iter_mut() {
             if plane_id_temp == plane.2.hex {
-                //println!("Update plane {:?}", plane_id);
                 // Update position if all Some has data
                 let pos = read_tmp.get_latest_pos(plane_id.to_string());
                 if pos.is_some() {
@@ -115,6 +108,7 @@ pub fn update_planes(
         }
     }
 }
+
 pub fn create_planes(
     time: Res<Time>,
     mut commands: Commands,
@@ -176,12 +170,7 @@ fn list_plane_ids(
         let list = read_tmp.get_planes_id();
         for plane_id in list {
             let plane_id_string = plane_id.to_string();
-            // Data dump to see what's going on
-            // println!(
-            //     "PlaneId: {:?} - Pos: {:?}",
-            //     plane_id,
-            //     read_tmp.get_latest_pos(plane_id_string)
-            // );
+            // TODO: Use for egui
         }
     }
 }
