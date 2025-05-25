@@ -1,4 +1,4 @@
-use ::bevy::pbr::wireframe::{Wireframe, WireframePlugin};
+use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::color::palettes::tailwind::*;
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
@@ -10,7 +10,7 @@ use crate::terrain_color_spectrum::*;
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(PanOrbitCameraPlugin)
-        .add_plugins(WireframePlugin)
+        .add_plugins(WireframePlugin { debug_flags: Default::default() })
         .add_systems(Startup, setup)
         .add_systems(
             Update,

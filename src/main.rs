@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 use bevy::prelude::*;
+use bevy_egui::{egui, EguiContexts, EguiPlugin, EguiContextPass};
 
 use crate::network::*;
 use crate::data_share::SharedDataDb;
@@ -36,8 +37,16 @@ async fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(ShareStruct(bevy_plane_data_db))
+        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
+        .add_systems(EguiContextPass, ui_example_system)
         .add_plugins(setup::plugin) // camera, basic landscape, support gizmos
         .add_plugins(plugin_plane::plugin) // plane related, setup, updates
         .run();
 
+}
+
+fn ui_example_system(mut contexts: EguiContexts) {
+    egui::Window::new("Planes").show(contexts.ctx_mut(), |ui| {
+        ui.label("world");
+    });
 }
