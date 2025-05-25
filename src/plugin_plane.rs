@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use bevy::color::palettes::tailwind::RED_400;
 use bevy::prelude::*;
-
+use bevy_panorbit_camera::FocusBoundsShape::{Cuboid, Sphere};
 use crate::ShareStruct;
 use crate::math::*;
 
@@ -136,7 +136,7 @@ pub fn create_planes(
             //println!("Create plane {:?}", plane_id);
             commands.spawn((
                 Plane::new(plane_id_tmp),
-                Mesh3d(meshes.add(Capsule3d::new(2.0, 2.0))),
+                Mesh3d(meshes.add(Capsule3d::new(1.0, 1.0))),
                 MeshMaterial3d(materials.add(Color::WHITE)),
                 Transform::from_xyz(-1000.0, 0.0, 0.0),
             ));
