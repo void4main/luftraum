@@ -1,5 +1,4 @@
 use ::bevy::pbr::wireframe::{Wireframe, WireframePlugin};
-use bevy::color::palettes::css::WHITE;
 use bevy::color::palettes::tailwind::*;
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
@@ -85,22 +84,12 @@ pub fn setup(
 }
 
 pub fn support_structures(mut gizmos: Gizmos) {
-    
-    // gizmos.cross(
-    //     Vec3::new(
-    //         ops::cos(time.elapsed_secs()) * 2.0,
-    //         1.,
-    //         ops::sin(time.elapsed_secs()) * 2.0,
-    //     ),
-    //     0.5,
-    //     GREY,
-    // );
-
-    // Sylt Süden
-    let lat1 = map_range(54.740723, 50.0, 55.0, 1000.0, -1000.0);
-    let lon1 = map_range(8.295761, 5.0, 10.0, -1000.0, 1000.0);
+    // Antennenposition 53.5718392,9.9834842
+    let lat1 = map_range(53.5718392, 50.0, 55.0, 1000.0, -1000.0);
+    let lon1 = map_range(9.9834842, 5.0, 10.0, -1000.0, 1000.0);
     let scale = 0.00361;
-    gizmos.cross(Vec3::new(lon1, 10000.0 * scale, lat1), 15.5, PURPLE_600);
+    gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, PURPLE_600);
+    
     // HH Flughafen
     // 53.6308882,9.9888915
     let lat1 = map_range(53.6308882, 50.0, 55.0, 1000.0, -1000.0);
@@ -115,14 +104,12 @@ pub fn support_structures(mut gizmos: Gizmos) {
     let scale = 0.00361;
     gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, GREEN_400);
     
-    
     // Fuji Yama
     // 35.361865, 138.732045
-    let lat1 = map_range(35.361865, 35.0, 40.0, 1000.0, -1000.0);
-    let lon1 = map_range(138.732045, 135.0, 140.0, -1000.0, 1000.0);
-    let scale = 0.00361;
-    gizmos.cross(Vec3::new(lon1, 3776.24 * scale, lat1), 15.5, WHITE);
-    
+    // let lat1 = map_range(35.361865, 35.0, 40.0, 1000.0, -1000.0);
+    // let lon1 = map_range(138.732045, 135.0, 140.0, -1000.0, 1000.0);
+    // let scale = 0.00361;
+    // gizmos.cross(Vec3::new(lon1, 3776.24 * scale, lat1), 15.5, WHITE);
 }
 
 #[derive(Component)]

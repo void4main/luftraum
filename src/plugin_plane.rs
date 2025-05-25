@@ -9,15 +9,15 @@ use bevy::prelude::*;
 struct TimerResource(Timer);
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, spawn_plane)
-        .insert_resource(TimerResource(Timer::new(
-            Duration::from_secs(10),
-            TimerMode::Repeating,
-        )))
-        .add_systems(
-            Update,
-            (create_planes, update_planes, list_plane_ids, update_route),
-        );
+    //app.add_systems(Startup, spawn_plane)
+    app.insert_resource(TimerResource(Timer::new(
+        Duration::from_secs(10),
+        TimerMode::Repeating,
+    )))
+    .add_systems(
+        Update,
+        (create_planes, update_planes, list_plane_ids, update_route),
+    );
 }
 
 #[derive(Component, Debug)]
@@ -48,25 +48,6 @@ impl Plane {
             rssi: None,
         }
     }
-}
-
-pub fn spawn_plane(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // commands.spawn((
-    //     Plane::new("aacc".to_string()),
-    //     Mesh3d(meshes.add(Capsule3d::new(1.2, 0.3))),
-    //     MeshMaterial3d(materials.add(Color::WHITE)),
-    //     Transform::from_xyz(-1.0, 2.0, 1.5).with_rotation(Quat::from_rotation_y(PI / 3.0)),
-    // ));
-    // commands.spawn((
-    //     Plane::new("bbbb".to_string()),
-    //     Mesh3d(meshes.add(Capsule3d::new(1.2, 0.3))),
-    //     MeshMaterial3d(materials.add(Color::WHITE)),
-    //     Transform::from_xyz(-1.0, 4.0, 1.5).with_rotation(Quat::from_rotation_y(PI / 3.0)),
-    // ));
 }
 
 // Create update all planes positions
@@ -147,15 +128,17 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos) {
                 5.0,
                 RED_400,
             );
+            // Indicate ground location
+            gizmos.cross(
+                Vec3::new(lon1, 0.0, lat1),
+                5.0,
+                RED_400,
+            );
         }
     }
 }
 
-fn list_plane_ids(
-    time: Res<Time>,
-    mut timer: ResMut<TimerResource>,
-    read: Res<ShareStruct>,
-) {
+fn list_plane_ids(time: Res<Time>, mut timer: ResMut<TimerResource>, read: Res<ShareStruct>) {
     timer.0.tick(time.delta());
     if timer.0.just_finished() {
         let read_tmp = read.0.lock().unwrap();
