@@ -1,9 +1,12 @@
+use std::ops::Deref;
 use std::time::Duration;
+
+use bevy::color::palettes::tailwind::{RED_400, YELLOW_500};
+use bevy::prelude::*;
 
 use crate::ShareStruct;
 use crate::math::*;
-use bevy::color::palettes::tailwind::RED_400;
-use bevy::prelude::*;
+use crate::plugin_egui::*;
 
 #[derive(Resource)]
 struct TimerResource(Timer);
@@ -112,7 +115,7 @@ pub fn create_planes(
     }
 }
 
-pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos) {
+pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<UiState>) {
     let read_tmp = read.0.lock().unwrap();
     let list = read_tmp.get_planes_id();
 
@@ -129,11 +132,13 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos) {
                 RED_400,
             );
             // Indicate ground location
-            gizmos.cross(
-                Vec3::new(lon1, 0.0, lat1),
-                5.0,
-                RED_400,
-            );
+            if ui_state.pos_ground_projection {
+                gizmos.cross(Vec3::new(lon1, 0.0, lat1), 5.0, RED_400);
+            }
+            if ui_state.pos_ground_arrow {
+                gizmos.arrow(Vec3::new(lon1, 0.0, lat1), Vec3::new(lon1,plane_data.2 * scale * 0.3048 , lat1), YELLOW_500);
+            }
+          
         }
     }
 }

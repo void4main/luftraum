@@ -1,12 +1,13 @@
 [package]
 name = "luftraum"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 
 [dependencies]
 bevy = "0.16.0"
 bevy_panorbit_camera = "0.26.0"
 # bevy_egui = "0.34.1"
+# Crash fix
 bevy_egui = { git = "https://github.com/vladbat00/bevy_egui.git", branch = "fix-panic-on-window-close" }
 tokio = { version = "1.44.2", features = ["full"] }
 chrono = "0.4.41"
