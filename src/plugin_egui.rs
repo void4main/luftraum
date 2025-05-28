@@ -21,11 +21,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(EguiContextPass, ui_system);
 }
 
-fn ui_system(
-    mut contexts: EguiContexts,
-    read: Res<ShareStruct>,
-    mut ui_state: ResMut<UiState>,
-) {
+fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: ResMut<UiState>) {
     // TODO: Beautify code
     let read_tmp = read.0.lock().unwrap();
     // TODO: Clone to end lock?
@@ -35,16 +31,25 @@ fn ui_system(
     egui::Window::new("Luftraum").show(contexts.ctx_mut(), |ui| {
         // List all planes
         ui.collapsing(heading, |ui| {
+            let mut height_level = "-".to_string();
             for plane_id in plane_list {
-                ui.label(plane_id);
+                let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
+                if let Some(height_level_option) = height_level_option {
+                    height_level = height_level_option.2.to_string();
+                }
+
+                let plane_data = format!("{plane_id} | {height_level}");
+                ui.label(plane_data);
             }
         });
-        
+
         // Settings section
         ui.collapsing("Settings", |ui| {
-            ui.checkbox(&mut ui_state.pos_ground_projection, "Project position to ground");
+            ui.checkbox(
+                &mut ui_state.pos_ground_projection,
+                "Project position to ground",
+            );
             ui.checkbox(&mut ui_state.pos_ground_arrow, "Arrow position to ground");
         });
-        
     });
 }
