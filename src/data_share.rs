@@ -52,7 +52,13 @@ impl SharedDataDb {
         //println!("Data: {:?}", list);
         list
     }
-
+    // pub fn get_flight(&self, plane_id: String) -> String {
+    //     if self.plane_db.contains_key(&plane_id) {
+    //         let p_dataset = self.plane_db.get(&plane_id).unwrap();
+    //         return p_dataset.data_const.call_sign.unwrap_or("-".to_string)
+    //     }
+    //     "-".to_string
+    // }
     pub fn get_latest_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
         if self.plane_db.contains_key(&plane_id) {
             let p_dataset = self.plane_db.get(&plane_id).unwrap();

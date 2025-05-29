@@ -8,6 +8,9 @@ Application to show live air traffic in 3D.
 Start ./dump1090 --device-type hackrf --net-sbs-port 30003 and afterwards start luftraum.
 Luftraum connects to 127.0.0.1:30003 statically by now.
 
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.png)
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1b.png)
+
 I got my SRTM ASCII data here:
 ### SRTM data source
 Jarvis A., H.I. Reuter, A.  Nelson, E. Guevara, 2008, Hole-filled  seamless SRTM

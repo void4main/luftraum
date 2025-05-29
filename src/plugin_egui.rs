@@ -37,7 +37,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                 if let Some(height_level_option) = height_level_option {
                     height_level = height_level_option.2.to_string();
                 }
-
+                // let flight = read_tmp.
                 let plane_data = format!("{plane_id} | {height_level}");
                 ui.label(plane_data);
             }
