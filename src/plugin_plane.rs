@@ -19,7 +19,7 @@ pub fn plugin(app: &mut App) {
     )))
     .add_systems(
         Update,
-        (create_planes, update_planes, list_plane_ids, update_route),
+        (create_planes, update_planes, update_route, increase_plane_last_seen, despawn_planes),
     );
 }
 
@@ -80,7 +80,9 @@ pub fn update_planes(
 
                     // TODO: Distribute scale factor
                     let scale = 0.00361;
-                    plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1);
+                    plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1); // What was 0.3048 again?
+                    
+                    
                 }
                 break 'inner;
             }
@@ -92,14 +94,14 @@ pub fn create_planes(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut query: Query<(&mut Transform, Entity, &mut Plane)>,
+    query: Query<(&mut Transform, &Plane)>,
     read: Res<ShareStruct>,
 ) {
     let read_tmp = read.0.lock().unwrap();
     let plane_list = read_tmp.get_planes_id();
     let spawned_list = query
         .iter()
-        .map(|e| e.2.hex.clone())
+        .map(|e| e.1.hex.clone())
         .collect::<Vec<String>>();
 
     for plane_id in plane_list {
@@ -136,21 +138,45 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
                 gizmos.cross(Vec3::new(lon1, 0.0, lat1), 5.0, RED_400);
             }
             if ui_state.pos_ground_arrow {
-                gizmos.arrow(Vec3::new(lon1, 0.0, lat1), Vec3::new(lon1,plane_data.2 * scale * 0.3048 , lat1), YELLOW_500);
+                gizmos.arrow(
+                    Vec3::new(lon1, 0.0, lat1),
+                    Vec3::new(lon1, plane_data.2 * scale * 0.3048, lat1),
+                    YELLOW_500,
+                );
             }
-          
         }
     }
 }
 
-fn list_plane_ids(time: Res<Time>, mut timer: ResMut<TimerResource>, read: Res<ShareStruct>) {
+fn increase_plane_last_seen(
+    time: Res<Time>,
+    mut timer: ResMut<TimerResource>,
+    read: Res<ShareStruct>,
+) {
     timer.0.tick(time.delta());
     if timer.0.just_finished() {
-        let read_tmp = read.0.lock().unwrap();
-        let list = read_tmp.get_planes_id();
-        for plane_id in list {
-            let plane_id_string = plane_id.to_string();
-            // TODO: Use for egui
+        let mut read_tmp = read.0.lock().unwrap();
+        read_tmp.increase_last_seen(); // Increase by 10
+    }
+}
+
+fn despawn_planes(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut timer: ResMut<TimerResource>,
+    mut query: Query<(Entity, &Plane)>,
+    read: Res<ShareStruct>,
+) {
+    timer.0.tick(time.delta());
+    if timer.0.just_finished() {
+        let mut read_tmp = read.0.lock().unwrap();
+        for plane_id in query.iter_mut() {
+            println!("Last seen: {:?} {:?}", plane_id.1.hex.clone(), read_tmp.get_last_seen(plane_id.1.hex.clone()));
+            if read_tmp.get_last_seen(plane_id.1.hex.clone()) > 180 {
+                read_tmp.remove_plane(plane_id.1.hex.clone());
+                commands.entity(plane_id.0).despawn();
+                println!("Plane {} has been removed", plane_id.1.hex);
+            }
         }
     }
 }

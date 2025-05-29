@@ -1,7 +1,17 @@
 use crate::terrain::SrtmTerrain;
 
-pub fn import_srtm(res: usize) -> SrtmTerrain {
-    let data = include_str!(".././assets/srtm_38_02.asc").to_string(); // Elbe, Hamburg
+pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
+    // TODO: Replace static hack
+    let mut data: String = "".to_string();
+    if dataset == 0 {
+        data = include_str!(".././assets/srtm_38_02.asc").to_string(); // Elbe, Hamburg
+    } else if dataset == 1 {
+        data = include_str!(".././assets/srtm_39_02.asc").to_string(); // Elbe, Hamburg 2
+    } else if dataset == 2 {  
+        data = include_str!(".././assets/srtm_38_01.asc").to_string(); // Nordsee
+    } else if dataset == 3 {  
+        data = include_str!(".././assets/srtm_39_01.asc").to_string(); // Ostsee
+    }
     // let data = include_str!(".././assets/srtm_64_05.asc").to_string(); // Fuji
     let mut data_lines = data.lines();
 

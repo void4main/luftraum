@@ -49,16 +49,28 @@ impl SharedDataDb {
 
     pub fn get_planes_id(&self) -> Vec<&str> {
         let list: Vec<&str> = self.plane_db.keys().map(|s| s.as_str()).collect();
-        //println!("Data: {:?}", list);
         list
     }
-    // pub fn get_flight(&self, plane_id: String) -> String {
-    //     if self.plane_db.contains_key(&plane_id) {
-    //         let p_dataset = self.plane_db.get(&plane_id).unwrap();
-    //         return p_dataset.data_const.call_sign.unwrap_or("-".to_string)
-    //     }
-    //     "-".to_string
-    // }
+    
+    pub fn increase_last_seen(&mut self) {
+        for (_key, value) in self.plane_db.iter_mut() {
+            value.last_seen += 10; // Seconds
+        }
+    }
+    
+    pub fn zero_last_seen(&mut self, plane_id: String) {
+        let mut plane_tmp = self.plane_db.get_mut(&plane_id).unwrap();
+        plane_tmp.last_seen = 0;
+    }
+    
+    pub fn get_last_seen(&self, plane_id: String) -> usize {
+        self.plane_db.get(&plane_id).unwrap().last_seen
+    }
+    
+    pub fn remove_plane(&mut self, plane_id: String) {
+        self.plane_db.remove(&plane_id);
+    }
+    
     pub fn get_latest_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
         if self.plane_db.contains_key(&plane_id) {
             let p_dataset = self.plane_db.get(&plane_id).unwrap();
