@@ -48,18 +48,19 @@ impl SharedDataDb {
     }
 
     pub fn get_planes_id(&self) -> Vec<&str> {
-        let list: Vec<&str> = self.plane_db.keys().map(|s| s.as_str()).collect();
-        list
+        let list_of_planes: Vec<&str> = self.plane_db.keys().map(|s| s.as_str()).collect();
+        list_of_planes
     }
     
     pub fn increase_last_seen(&mut self) {
+        // Increase last_seen of all plane entries
         for (_key, value) in self.plane_db.iter_mut() {
-            value.last_seen += 10; // Seconds
+            value.last_seen += 10;
         }
     }
     
     pub fn zero_last_seen(&mut self, plane_id: String) {
-        let mut plane_tmp = self.plane_db.get_mut(&plane_id).unwrap();
+        let plane_tmp = self.plane_db.get_mut(&plane_id).unwrap();
         plane_tmp.last_seen = 0;
     }
     
@@ -114,6 +115,7 @@ impl SharedDataDb {
             // TODO: implement update
             let data_temp = temp.get_mut(&hex_ident).unwrap();
             // TODO: Define message types, 3 = ES Airborne Position Message
+            data_temp.last_seen = 0;
             if transmission_type == 3 {
                 data_temp.data_var.latitude.push(latitude);
                 data_temp.data_var.longitude.push(longitude);

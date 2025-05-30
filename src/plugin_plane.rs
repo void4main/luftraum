@@ -19,7 +19,13 @@ pub fn plugin(app: &mut App) {
     )))
     .add_systems(
         Update,
-        (create_planes, update_planes, update_route, increase_plane_last_seen, despawn_planes),
+        (
+            create_planes,
+            update_planes,
+            update_route,
+            increase_plane_last_seen,
+            despawn_planes,
+        ),
     );
 }
 
@@ -55,22 +61,22 @@ impl Plane {
 
 // Create update all planes positions
 // TODO: Divide create and update etc.
-pub fn update_planes(
-    mut query: Query<(&mut Transform, Entity, &mut Plane)>,
-    read: Res<ShareStruct>,
-) {
+pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMut<ShareStruct>) {
     // TODO: Beautify code
-    let read_tmp = read.0.lock().unwrap();
-    // TODO: Clone to end lock?
-    let plane_list = read_tmp.get_planes_id();
+    let mut read_tmp = read.0.lock().unwrap();
+    let plane_list: Vec<String> = read_tmp
+        .get_planes_id()
+        .iter()
+        .map(|&s| s.to_string())
+        .collect();
 
     // Get all existing plane_id in database
     for plane_id in plane_list {
-        let plane_id_temp = String::from(plane_id);
         'inner: for mut plane in query.iter_mut() {
-            if plane_id_temp == plane.2.hex {
+            if plane_id == plane.1.hex {
                 // Update position if all Some has data
                 let pos = read_tmp.get_latest_pos(plane_id.to_string());
+
                 if pos.is_some() {
                     let lat = pos.unwrap().0;
                     let lon = pos.unwrap().1;
@@ -81,8 +87,6 @@ pub fn update_planes(
                     // TODO: Distribute scale factor
                     let scale = 0.00361;
                     plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1); // What was 0.3048 again?
-                    
-                    
                 }
                 break 'inner;
             }
@@ -171,7 +175,11 @@ fn despawn_planes(
     if timer.0.just_finished() {
         let mut read_tmp = read.0.lock().unwrap();
         for plane_id in query.iter_mut() {
-            println!("Last seen: {:?} {:?}", plane_id.1.hex.clone(), read_tmp.get_last_seen(plane_id.1.hex.clone()));
+            println!(
+                "Last seen: {:?} {:?}",
+                plane_id.1.hex.clone(),
+                read_tmp.get_last_seen(plane_id.1.hex.clone())
+            );
             if read_tmp.get_last_seen(plane_id.1.hex.clone()) > 180 {
                 read_tmp.remove_plane(plane_id.1.hex.clone());
                 commands.entity(plane_id.0).despawn();
