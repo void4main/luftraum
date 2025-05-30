@@ -17,7 +17,6 @@ mod terrain_color_spectrum;
 mod sbs;
 mod data_share;
 
-
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 

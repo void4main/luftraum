@@ -178,7 +178,6 @@ fn despawn_planes(
             if read_tmp.get_last_seen(plane_id.1.hex.clone()) > 60 {
                 read_tmp.remove_plane(plane_id.1.hex.clone());
                 commands.entity(plane_id.0).despawn();
-                println!("Plane {} has been removed", plane_id.1.hex);
             }
         }
     }
