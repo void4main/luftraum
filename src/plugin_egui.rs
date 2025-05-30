@@ -31,9 +31,9 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
     egui::Window::new("Luftraum").show(contexts.ctx_mut(), |ui| {
         // List all planes
         ui.collapsing(heading, |ui| {
-            let mut height_level = "-".to_string();
             for plane_id in plane_list {
                 let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
+                let mut height_level = "-".to_string();
                 if let Some(height_level_option) = height_level_option {
                     height_level = height_level_option.2.to_string();
                 }
