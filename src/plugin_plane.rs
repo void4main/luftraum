@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::time::Duration;
 
 use bevy::color::palettes::tailwind::{RED_400, YELLOW_500};
@@ -60,10 +59,9 @@ impl Plane {
 }
 
 // Create update all planes positions
-// TODO: Divide create and update etc.
 pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMut<ShareStruct>) {
     // TODO: Beautify code
-    let mut read_tmp = read.0.lock().unwrap();
+    let read_tmp = read.0.lock().unwrap();
     let plane_list: Vec<String> = read_tmp
         .get_planes_id()
         .iter()
@@ -175,12 +173,9 @@ fn despawn_planes(
     if timer.0.just_finished() {
         let mut read_tmp = read.0.lock().unwrap();
         for plane_id in query.iter_mut() {
-            println!(
-                "Last seen: {:?} {:?}",
-                plane_id.1.hex.clone(),
-                read_tmp.get_last_seen(plane_id.1.hex.clone())
-            );
-            if read_tmp.get_last_seen(plane_id.1.hex.clone()) > 180 {
+            // Plane 'lifetime' if unseen
+            // TODO: Setup in egui
+            if read_tmp.get_last_seen(plane_id.1.hex.clone()) > 60 {
                 read_tmp.remove_plane(plane_id.1.hex.clone());
                 commands.entity(plane_id.0).despawn();
                 println!("Plane {} has been removed", plane_id.1.hex);
