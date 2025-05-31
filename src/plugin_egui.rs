@@ -31,15 +31,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
     egui::Window::new("Luftraum").show(contexts.ctx_mut(), |ui| {
         // List all planes
         ui.collapsing(heading, |ui| {
-            for plane_id in plane_list {
-                let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
-                let mut height_level = "-".to_string();
-                if let Some(height_level_option) = height_level_option {
-                    height_level = height_level_option.2.to_string();
-                }
-                let plane_data = format!("{plane_id} | {height_level}");
-                ui.label(plane_data);
-            }
+            
         });
 
         // Settings section
@@ -50,5 +42,18 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
             );
             ui.checkbox(&mut ui_state.pos_ground_arrow, "Arrow position to ground");
         });
+
+        for plane_id in plane_list {
+            let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
+            let mut height_level = "-".to_string();
+            if let Some(height_level_option) = height_level_option {
+                height_level = height_level_option.2.to_string();
+            }
+            let flight = read_tmp.get_flight(plane_id.to_string());
+            // TODO: Add flight
+            let plane_data = format!("{plane_id} | {height_level} | {flight}");
+            ui.label(plane_data);
+        }
+        
     });
 }

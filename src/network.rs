@@ -21,7 +21,7 @@ pub async fn connect_dump1090_sbs(
     while let line = lines.next_line().await {
         match line {
             Ok(Some(message)) => {
-                // println!("ORIG: {:?}", message);
+                println!("ORIG: {:?}", message);
 
                 // Split message into 22 pieces
                 // TODO: Check len
@@ -102,7 +102,7 @@ pub async fn connect_dump1090_sbs(
                 break;
             }
             _ => {
-                eprintln!("Connection rest by peer?");
+                eprintln!("Connection reset by peer?");
                 break;
             }
         }

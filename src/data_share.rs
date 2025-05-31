@@ -84,6 +84,15 @@ impl SharedDataDb {
         }
         None
     }
+    
+    pub fn get_flight(&self, plane_id: String) -> String {
+        if self.plane_db.contains_key(&plane_id) {
+            let p_dataset = self.plane_db.get(&plane_id).unwrap();
+            let flight = p_dataset.data_const.aircraft_id.clone().unwrap();
+            return flight;
+        }
+        "-".to_string()
+    }
 
     pub fn update_data(
         &mut self,
