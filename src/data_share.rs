@@ -59,10 +59,10 @@ impl SharedDataDb {
         }
     }
     
-    pub fn zero_last_seen(&mut self, plane_id: String) {
-        let plane_tmp = self.plane_db.get_mut(&plane_id).unwrap();
-        plane_tmp.last_seen = 0;
-    }
+    // pub fn zero_last_seen(&mut self, plane_id: String) {
+    //     let plane_tmp = self.plane_db.get_mut(&plane_id).unwrap();
+    //     plane_tmp.last_seen = 0;
+    // }
     
     pub fn get_last_seen(&self, plane_id: String) -> usize {
         self.plane_db.get(&plane_id).unwrap().last_seen
@@ -85,11 +85,12 @@ impl SharedDataDb {
         None
     }
     
-    pub fn get_flight(&self, plane_id: String) -> String {
+    pub fn get_call_sign(&self, plane_id: String) -> String {
+        // TODO: Weired code, cleanup
         if self.plane_db.contains_key(&plane_id) {
             let p_dataset = self.plane_db.get(&plane_id).unwrap();
-            let flight = p_dataset.data_const.aircraft_id.clone().unwrap();
-            return flight;
+            let call_sign = p_dataset.data_const.call_sign.clone().unwrap();
+            return call_sign;
         }
         "-".to_string()
     }
@@ -124,11 +125,21 @@ impl SharedDataDb {
             // TODO: implement update
             let data_temp = temp.get_mut(&hex_ident).unwrap();
             // TODO: Define message types, 3 = ES Airborne Position Message
+            
+            // New data, so last_seen is 0
             data_temp.last_seen = 0;
+            
             if transmission_type == 3 {
                 data_temp.data_var.latitude.push(latitude);
                 data_temp.data_var.longitude.push(longitude);
                 data_temp.data_var.altitude.push(altitude);
+            }
+            if transmission_type == 5 {
+                if call_sign.is_some() {
+                    if call_sign.clone().unwrap().len() > 0 {
+                        data_temp.data_const.call_sign = call_sign;
+                    }
+                }
             }
         } else {
             temp.insert(

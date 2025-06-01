@@ -24,7 +24,6 @@ pub fn plugin(app: &mut App) {
 fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: ResMut<UiState>) {
     // TODO: Beautify code
     let read_tmp = read.0.lock().unwrap();
-    // TODO: Clone to end lock?
     let plane_list = read_tmp.get_planes_id();
     let number_of_planes = plane_list.len().to_string().parse::<i32>().unwrap();
     let heading = format!("Planes ({number_of_planes})");
@@ -49,9 +48,9 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
             if let Some(height_level_option) = height_level_option {
                 height_level = height_level_option.2.to_string();
             }
-            let flight = read_tmp.get_flight(plane_id.to_string());
+            let call_sign = read_tmp.get_call_sign(plane_id.to_string());
             // TODO: Add flight
-            let plane_data = format!("{plane_id} | {height_level} | {flight}");
+            let plane_data = format!("{plane_id} | {height_level} | {call_sign}");
             ui.label(plane_data);
         }
         
