@@ -85,6 +85,12 @@ impl SharedDataDb {
         None
     }
     
+    // pub fn get_latest_squak(&self, plane_id: String) -> Option<f32> {
+    //     if self.plane_db.contains_key(&plane_id) {
+    //         
+    //     }
+    // }
+    
     pub fn get_call_sign(&self, plane_id: String) -> String {
         // TODO: Weired code, cleanup
         if self.plane_db.contains_key(&plane_id) {
@@ -121,6 +127,7 @@ impl SharedDataDb {
         is_on_ground: Option<bool>,
     ) {
         let temp = &mut self.plane_db;
+        // Update if plane already created
         if temp.contains_key(&hex_ident) {
             // TODO: implement update
             let data_temp = temp.get_mut(&hex_ident).unwrap();

@@ -16,6 +16,8 @@ mod terrain;
 mod terrain_color_spectrum;
 mod sbs;
 mod data_share;
+mod plugin_airspace;
+mod plugin_groundstructures;
 
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
@@ -40,6 +42,7 @@ async fn main() {
         .add_plugins(plugin_egui::plugin)       // egui
         .add_plugins(setup::plugin)             // camera, basic landscape, support gizmos
         .add_plugins(plugin_plane::plugin)      // plane related, setup, updates
+        .add_plugins(plugin_airspace::plugin)   // static airspace structures
         .run();
 
 }

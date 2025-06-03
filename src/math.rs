@@ -14,15 +14,7 @@ pub fn angle_rad_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     let angle = (scalar_product / (betrag_x * betrag_y)).acos();
     angle
 }
-pub fn largest_f32(list: &Vec<f32>) -> &f32 {
-    let mut largest = &list[0];
-    for item in list {
-        if item > largest {
-            largest = item;
-        }
-    }
-    largest
-}
+
 pub fn haversine_distance(lat_1: f32, lon_1: f32, lat_2: f32, lon_2: f32) -> f32 {
     const EARTH_RADIUS: f32 = 6371.00887714; // Earth radius in km
     let d_lat = lat_2 * PI / 180.0 - lat_1 * PI / 180.0;
@@ -40,8 +32,8 @@ pub fn get_pixel_pos(lat: f32, lon: f32, p_x: f32, p_y: f32, cell_rows: usize, c
     // Map a geolocation to the pixel ground plane
     let llx_max = llx * cell_dist * cell_cols as f32 + 0.5 * llx;
     let lly_max = lly * cell_dist * cell_rows as f32 + 0.5 * lly;
-    let mut p_pos_x = map_range(lat, llx, llx_max, -p_x/2.0, p_x/2.0);
-    let mut p_pos_y = map_range(lon, lly, lly_max, -p_y/2.0, p_y/2.0);
+    let p_pos_x = map_range(lat, llx, llx_max, -p_x/2.0, p_x/2.0);
+    let p_pos_y = map_range(lon, lly, lly_max, -p_y/2.0, p_y/2.0);
     (p_pos_x, p_pos_y)
 }
 
@@ -74,7 +66,7 @@ pub fn get_number_of_triangles_row(subs: usize) -> usize {
     (subs + 1) * 2
 }
 
-pub fn get_num_subdevisions(data_points_row: u32) -> u32 {
+pub fn get_num_subdivisions(data_points_row: u32) -> u32 {
     ((data_points_row as f32 / 2.0).floor() as u32) - 1 
 }
 
@@ -126,6 +118,5 @@ mod tests {
     fn test_get_height_color() {
         let height = 2000.0;
         let result = get_height_color(height, ImhofModified);
-        
     }
 }
