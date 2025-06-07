@@ -139,6 +139,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
             if ui_state.pos_ground_projection {
                 gizmos.cross(Vec3::new(lon1, 0.0, lat1), 5.0, RED_400);
             }
+            
             if ui_state.pos_ground_arrow {
                 gizmos.arrow(
                     Vec3::new(lon1, 0.0, lat1),

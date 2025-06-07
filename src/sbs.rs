@@ -6,7 +6,7 @@ struct SbsMessage {
     transmission_type: u8,       // Transmission type (e.g., 1, 2, 3, etc.)
     session_id: Option<String>,  // Session ID (optional, often empty)
     aircraft_id: Option<String>, // Aircraft ID (optional, often empty)
-    hex_ident: String,           // ICAO 24-bit address in hexadecimal
+    hex_ident: String,           // ICAO 24-bit address in hexadecimal, unique identifier 
     flight_id: Option<String>,   // Flight ID (optional, often empty)
     generated_date: NaiveDate,   // Date the message was generated (UTC)
     generated_time: NaiveTime,   // Time the message was generated (UTC)

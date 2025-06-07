@@ -7,6 +7,7 @@ pub fn angle_deg_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     let angle = (scalar_product / (betrag_x * betrag_y)).acos().to_degrees();
     angle
 }
+
 pub fn angle_rad_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     let scalar_product = x_1 * x_2 + y_1 * y_2;
     let betrag_x = (x_1 * x_1 + y_1 * y_1).sqrt();
@@ -15,19 +16,26 @@ pub fn angle_rad_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     angle
 }
 
-pub fn haversine_distance(lat_1: f32, lon_1: f32, lat_2: f32, lon_2: f32) -> f32 {
+pub fn haversine_distance(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
     const EARTH_RADIUS: f32 = 6371.00887714; // Earth radius in km
-    let d_lat = lat_2 * PI / 180.0 - lat_1 * PI / 180.0;
-    let d_lon = lon_2 * PI / 180.0 - lon_1 * PI / 180.0;
-    let a = (d_lat / 2.0).sin() * (d_lat / 2.0).sin()
-        + (lat_1 * PI / 180.0).cos()
-            * (lat_2 * PI / 180.0).cos()
-            * (d_lon / 2.0).sin()
-            * (d_lon / 2.0).sin();
-    let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
-    let distance = EARTH_RADIUS * c;
-    distance
+
+    // Convert degrees to radians
+    let lat1_rad = lat1 * PI / 180.0;
+    let lon1_rad = lon1 * PI / 180.0;
+    let lat2_rad = lat2 * PI / 180.0;
+    let lon2_rad = lon2 * PI / 180.0;
+
+    // Differences
+    let dlat = lat2_rad - lat1_rad;
+    let dlon = lon2_rad - lon1_rad;
+
+    // Haversine formula
+    let a = (dlat / 2.0).sin().powi(2) + lat1_rad.cos() * lat2_rad.cos() * (dlon / 2.0).sin().powi(2);
+    let c = 2.0 * a.sqrt().asin();
+
+    EARTH_RADIUS * c
 }
+
 pub fn get_pixel_pos(lat: f32, lon: f32, p_x: f32, p_y: f32, cell_rows: usize, cell_cols: usize, llx: f32, lly: f32, cell_dist: f32) -> (f32, f32) {
     // Map a geolocation to the pixel ground plane
     let llx_max = llx * cell_dist * cell_cols as f32 + 0.5 * llx;
@@ -119,4 +127,17 @@ mod tests {
         let height = 2000.0;
         let result = get_height_color(height, ImhofModified);
     }
+
+    #[test]
+    fn test_haversine_distance() {
+        // Distance between New York and London (approximately 5585 km)
+        let ny_lat = 40.7128;
+        let ny_lon = -74.0060;
+        let london_lat = 51.5074;
+        let london_lon = -0.1278;
+
+        let distance = haversine_distance(ny_lat, ny_lon, london_lat, london_lon);
+        assert!((distance - 5585.0).abs() < 50.0); // Allow 50km tolerance
+    }
+    
 }

@@ -11,20 +11,19 @@ mod plugin_egui;
 mod plugin_plane;
 mod plugin_datatransfer;
 mod srtm;
-mod math;
+pub mod math;
 mod terrain;
 mod terrain_color_spectrum;
 mod sbs;
 mod data_share;
 mod plugin_airspace;
-mod plugin_groundstructures;
+//mod plugin_groundstructure;
 
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 
 #[tokio::main]
 async fn main() {
-    
     // Create struct to store all plane data and share it
     let plane_data_db = SharedDataDb::new();
     let shared_plane_data_db = Arc::new(Mutex::new(plane_data_db));

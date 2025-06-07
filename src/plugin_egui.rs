@@ -26,13 +26,10 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
     let read_tmp = read.0.lock().unwrap();
     let plane_list = read_tmp.get_planes_id();
     let number_of_planes = plane_list.len().to_string().parse::<i32>().unwrap();
+    
     let heading = format!("Planes ({number_of_planes})");
+    
     egui::Window::new("Luftraum").show(contexts.ctx_mut(), |ui| {
-        // List all planes
-        ui.collapsing(heading, |ui| {
-            
-        });
-
         // Settings section
         ui.collapsing("Settings", |ui| {
             ui.checkbox(
@@ -42,17 +39,33 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
             ui.checkbox(&mut ui_state.pos_ground_arrow, "Arrow position to ground");
         });
 
-        for plane_id in plane_list {
-            let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
-            let mut height_level = "-".to_string();
-            if let Some(height_level_option) = height_level_option {
-                height_level = height_level_option.2.to_string();
-            }
-            let call_sign = read_tmp.get_call_sign(plane_id.to_string());
-            // TODO: Add flight
-            let plane_data = format!("{plane_id} | {height_level} | {call_sign}");
-            ui.label(plane_data);
-        }
-        
+        // List all planes
+        // ui.collapsing(heading, |ui| {
+        //     for plane_id in plane_list {
+        //         let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
+        //         let mut height_level = "-".to_string();
+        //         if let Some(height_level_option) = height_level_option {
+        //             height_level = height_level_option.2.to_string();
+        //         }
+        //         let call_sign = read_tmp.get_call_sign(plane_id.to_string());
+        //         let plane_data = format!("{plane_id} | {height_level} | {call_sign}");
+        //         ui.label(plane_data);
+        //     }
+        // });
+
+        egui::CollapsingHeader::new(heading)
+            .default_open(true)
+            .show(ui, |ui| {
+                for plane_id in plane_list {
+                    let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
+                    let mut height_level = "-".to_string();
+                    if let Some(height_level_option) = height_level_option {
+                        height_level = height_level_option.2.to_string();
+                    }
+                    let call_sign = read_tmp.get_call_sign(plane_id.to_string());
+                    let plane_data = format!("{plane_id} | {height_level} | {call_sign}");
+                    ui.label(plane_data);
+                }
+            });
     });
 }

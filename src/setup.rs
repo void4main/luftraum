@@ -3,6 +3,7 @@ use bevy::color::palettes::tailwind::*;
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+use bevy::core_pipeline::fxaa::Fxaa;
 use crate::math::*;
 use crate::plugin_plane::*;
 use crate::srtm::*;
@@ -33,8 +34,9 @@ pub fn setup(
     commands.spawn((
         (
             Camera3d::default(),
-            Transform::from_xyz(0., 34.5, 12.).looking_at(Vec3::ZERO, Vec3::Y),
+            Transform::from_xyz(0., 134.5, 12.).looking_at(Vec3::ZERO, Vec3::Y),
         ),
+        Fxaa::default(),
         PanOrbitCamera::default(),
     ));
 
@@ -42,7 +44,7 @@ pub fn setup(
 
     // Terrain
     let srtm_data = import_srtm(size_dataset_row as usize, 0);
-    let sub_divisions = get_num_subdevisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
+    let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
     let terrain_width = 2000.0;
     let terrain_height = 2000.0;
 
@@ -91,7 +93,7 @@ pub fn setup(
     //
     //
     let srtm_data = import_srtm(size_dataset_row as usize, 1);
-    let sub_divisions = get_num_subdevisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
+    let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
     let terrain_width = 2000.0;
     let terrain_height = 2000.0;
     
