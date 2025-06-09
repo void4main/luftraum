@@ -5,7 +5,7 @@ Application to show live air traffic in 3D.
 * Uses SRTM terrain data to show environment
 * and dump1090 to get local ADS-B plane data
 
-Start ./dump1090 --device-type hackrf --net-sbs-port 30003 and afterwards start luftraum.
+Start `./dump1090 --device-type hackrf --net-sbs-port 30003` on localhost.
 Luftraum connects to 127.0.0.1:30003 statically by now.
 
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.png)
