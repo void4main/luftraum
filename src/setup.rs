@@ -34,7 +34,7 @@ pub fn setup(
     commands.spawn((
         (
             Camera3d::default(),
-            Transform::from_xyz(0., 134.5, 12.).looking_at(Vec3::ZERO, Vec3::Y),
+            Transform::from_xyz(12., 234.5, 12.).looking_at(Vec3::ZERO, Vec3::Y),
         ),
         Fxaa::default(),
         PanOrbitCamera::default(),

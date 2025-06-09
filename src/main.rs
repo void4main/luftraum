@@ -24,6 +24,7 @@ struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 
 #[tokio::main]
 async fn main() {
+    
     // Create struct to store all plane data and share it
     let plane_data_db = SharedDataDb::new();
     let shared_plane_data_db = Arc::new(Mutex::new(plane_data_db));
@@ -35,8 +36,17 @@ async fn main() {
         let _a = connect_dump1090_sbs(tokio_plane_data_db).await;
     });
     
+    // Set application name
+    let app_window = Some(Window {
+        title: "Luftraum".into(),
+        ..default()
+    });
+    
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: app_window,
+            ..default()
+        }))
         .insert_resource(ShareStruct(bevy_plane_data_db))
         .add_plugins(plugin_egui::plugin)       // egui
         .add_plugins(setup::plugin)             // camera, basic landscape, support gizmos
