@@ -1,9 +1,17 @@
 use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::color::palettes::tailwind::*;
+
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use bevy::core_pipeline::fxaa::Fxaa;
+
+// use bevy::{
+//     pbr::{
+//         experimental::meshlet::MeshletPlugin,Material,
+//         CascadeShadowConfigBuilder, DirectionalLightShadowMap,
+//     },
+//     prelude::*,};
+//use bevy::pbr::experimental::meshlet::MeshletMesh;
 use crate::math::*;
 use crate::plugin_plane::*;
 use crate::srtm::*;
@@ -12,6 +20,7 @@ use crate::terrain_color_spectrum::*;
 pub fn plugin(app: &mut App) {
     app.add_plugins(PanOrbitCameraPlugin)
         .add_plugins(WireframePlugin { debug_flags: Default::default() })
+        //.add_plugins(MeshletPlugin { cluster_buffer_slots: 1024 })
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -23,6 +32,7 @@ pub fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    //mut meshlet_meshes: ResMut<Assets<MeshletMesh>>
 ) {
     // Light
     commands.spawn((
@@ -34,9 +44,8 @@ pub fn setup(
     commands.spawn((
         (
             Camera3d::default(),
-            Transform::from_xyz(12., 234.5, 12.).looking_at(Vec3::ZERO, Vec3::Y),
+            Transform::from_xyz(0., 500., 0.).looking_at(Vec3::ZERO, Vec3::Y),
         ),
-        Fxaa::default(),
         PanOrbitCamera::default(),
     ));
 
@@ -75,7 +84,15 @@ pub fn setup(
         terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
         terrain.compute_normals();
     }
+    
+    // Meshlets test
+    // let terrain_meshlet = MeshletMesh::from_mesh(&terrain, 4).unwrap();
+    // let terrain_mesh_handle = meshlet_meshes.add(terrain_meshlet);
 
+    // Spawne Entity mit Meshlet
+    
+    
+    
     // Spawn terrain
     commands.spawn((
         Mesh3d(meshes.add(terrain)),
@@ -144,9 +161,9 @@ pub fn setup(
     //
     //
     // let srtm_data = import_srtm(size_dataset_row as usize, 2);
-    // let sub_divisions = get_num_subdevisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
-    // let terrain_width = 2000.0;
-    // let terrain_height = 2000.0;
+    // //let sub_divisions = get_num_subdevisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
+    // let terrain_width = 1000.0;
+    // let terrain_height = 1000.0;
     // 
     // // Build mesh
     // let mut terrain = Mesh::from(
@@ -182,10 +199,10 @@ pub fn setup(
     //     MeshMaterial3d(materials.add(StandardMaterial {
     //         ..Default::default()
     //     })),
-    //     Transform::from_xyz(0.0, 0.0, -2000.0),
+    //     Transform::from_xyz(0.0, 0.0, -1000.0),
     //     Terrain,
     // ));
-    //
+    // 
     //
     //
     // Terrain 4, TODO: Terrain sizes and stitching etc. etc.
