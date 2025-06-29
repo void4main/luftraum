@@ -51,46 +51,49 @@ impl SharedDataDb {
         let list_of_planes: Vec<&str> = self.plane_db.keys().map(|s| s.as_str()).collect();
         list_of_planes
     }
-    
+
     pub fn increase_last_seen(&mut self) {
         // Increase last_seen of all plane entries
         for (_key, value) in self.plane_db.iter_mut() {
             value.last_seen += 10;
         }
     }
-    
+
     // pub fn zero_last_seen(&mut self, plane_id: String) {
     //     let plane_tmp = self.plane_db.get_mut(&plane_id).unwrap();
     //     plane_tmp.last_seen = 0;
     // }
-    
+
     pub fn get_last_seen(&self, plane_id: String) -> usize {
         self.plane_db.get(&plane_id).unwrap().last_seen
     }
     
+    pub fn get_squawk(&self, plane_id: String) -> Option<i32> {
+        self.plane_db.get(&plane_id).unwrap().data_var.squawk.last().unwrap().clone()
+    }
+
     pub fn remove_plane(&mut self, plane_id: String) {
         self.plane_db.remove(&plane_id);
     }
-    
+
     pub fn get_latest_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
         if self.plane_db.contains_key(&plane_id) {
             let p_dataset = self.plane_db.get(&plane_id).unwrap();
             let lat = p_dataset.data_var.latitude.last().unwrap();
             let long = p_dataset.data_var.longitude.last().unwrap();
             let alt = p_dataset.data_var.altitude.last().unwrap();
-            return lat.and_then(|lat| {
-                long.and_then(|long| alt.map(|altitude| (lat, long, altitude)))
-            });
+            return lat
+                .and_then(|lat| long.and_then(|long| alt.map(|altitude| (lat, long, altitude))));
         }
         None
     }
-    
+
     // pub fn get_latest_squak(&self, plane_id: String) -> Option<f32> {
     //     if self.plane_db.contains_key(&plane_id) {
-    //         
+    //
     //     }
     // }
-    
+
     pub fn get_call_sign(&self, plane_id: String) -> String {
         // TODO: Weired code, cleanup
         if self.plane_db.contains_key(&plane_id) {
@@ -132,10 +135,10 @@ impl SharedDataDb {
             // TODO: implement update
             let data_temp = temp.get_mut(&hex_ident).unwrap();
             // TODO: Define message types, 3 = ES Airborne Position Message
-            
+
             // New data, so last_seen is 0
             data_temp.last_seen = 0;
-            
+
             if transmission_type == 3 {
                 data_temp.data_var.latitude.push(latitude);
                 data_temp.data_var.longitude.push(longitude);

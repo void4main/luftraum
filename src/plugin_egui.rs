@@ -40,32 +40,32 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
         });
 
         // List all planes
-        // ui.collapsing(heading, |ui| {
-        //     for plane_id in plane_list {
-        //         let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
-        //         let mut height_level = "-".to_string();
-        //         if let Some(height_level_option) = height_level_option {
-        //             height_level = height_level_option.2.to_string();
-        //         }
-        //         let call_sign = read_tmp.get_call_sign(plane_id.to_string());
-        //         let plane_data = format!("{plane_id} | {height_level} | {call_sign}");
-        //         ui.label(plane_data);
-        //     }
-        // });
-
         egui::CollapsingHeader::new(heading)
             .default_open(true)
             .show(ui, |ui| {
-                for plane_id in plane_list {
-                    let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
-                    let mut height_level = "-".to_string();
-                    if let Some(height_level_option) = height_level_option {
-                        height_level = height_level_option.2.to_string();
+                egui::Grid::new("some_unique_id").show(ui, |ui| {
+                    for plane_id in plane_list.clone() {
+                        let mut squawk_str= "-".to_string();
+                        
+                        if let Some(squawk) = read_tmp.get_squawk(plane_id.to_string()) {
+                            squawk_str = squawk.to_string();
+                        }
+                        let height_level_option = read_tmp.get_latest_pos(plane_id.to_string());
+                        let mut height_level = "-".to_string();
+                        if let Some(height_level_option) = height_level_option {
+                            height_level = height_level_option.2.to_string();
+                        }
+                        let call_sign = read_tmp.get_call_sign(plane_id.to_string());
+                        
+                        ui.label(plane_id);
+                        ui.label(squawk_str);
+                        ui.label(height_level);
+                        ui.label(call_sign);
+                        ui.end_row();
                     }
-                    let call_sign = read_tmp.get_call_sign(plane_id.to_string());
-                    let plane_data = format!("{plane_id} | {height_level} | {call_sign}");
-                    ui.label(plane_data);
-                }
+                });
             });
+        
+        
     });
 }
