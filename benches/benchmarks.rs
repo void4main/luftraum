@@ -37,7 +37,7 @@ pub fn haversine_distance2(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
     let dlat = lat2_rad - lat1_rad;
     let dlon = lon2_rad - lon1_rad;
 
-    // Haversine formula
+    // Haversine
     //let a = (dlat / 2.0).sin().powi(2) + lat1_rad.cos() * lat2_rad.cos() * (dlon / 2.0).sin().powi(2);
     let a = (dlat / 2.0).sin() * (dlat / 2.0).sin() + lat1_rad.cos() * lat2_rad.cos() * (dlon / 2.0).sin() * (dlon / 2.0).sin();
     let c = 2.0 * a.sqrt().asin();

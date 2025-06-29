@@ -22,8 +22,16 @@ mod plugin_airspace;
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 
+#[cfg(feature = "dhat-heap")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
+
+
 #[tokio::main]
 async fn main() {
+
+    #[cfg(feature = "dhat-heap")]
+    let _profiler = dhat::Profiler::new_heap();
     
     // Create struct to store all plane data and share it between the network and bevy tasks.
     let plane_data_db = SharedDataDb::new();

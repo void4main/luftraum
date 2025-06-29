@@ -23,3 +23,12 @@ bevy_egui = { git = "https://github.com/vladbat00/bevy_egui.git", branch = "fix-
 #tokio = { version = "1.44.2", features = ["full"] }
 tokio = { version = "1.45.1", features = ["full"] }
 chrono = "0.4.41"
+
+# Performance monitoring
+dhat = "0.3.3"
+
+[features]
+dhat-heap = []
+
+[profile.release]
+debug = true

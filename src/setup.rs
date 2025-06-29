@@ -1,3 +1,4 @@
+use std::hint::black_box;
 use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::color::palettes::tailwind::*;
 
@@ -90,7 +91,7 @@ pub fn setup(
     // let terrain_mesh_handle = meshlet_meshes.add(terrain_meshlet);
 
     // Spawne Entity mit Meshlet
-    
+
     
     
     // Spawn terrain

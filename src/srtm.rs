@@ -2,6 +2,7 @@ use crate::terrain::SrtmTerrain;
 
 pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
     // TODO: Replace static hack
+    println!("Importing SRTM data ...");
     let mut data: String = "".to_string();
     if dataset == 0 {
         data = include_str!(".././assets/srtm_38_02.asc").to_string(); // Elbe, Hamburg
@@ -67,7 +68,7 @@ pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
             data_vec.push(height);
         }
     }
-
+    println!("Done ...");
     SrtmTerrain {
         num_rows,
         num_cols,
