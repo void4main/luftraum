@@ -59,17 +59,27 @@ impl SharedDataDb {
         }
     }
 
-    // pub fn zero_last_seen(&mut self, plane_id: String) {
-    //     let plane_tmp = self.plane_db.get_mut(&plane_id).unwrap();
-    //     plane_tmp.last_seen = 0;
-    // }
-
     pub fn get_last_seen(&self, plane_id: String) -> usize {
         self.plane_db.get(&plane_id).unwrap().last_seen
     }
-    
+
     pub fn get_squawk(&self, plane_id: String) -> Option<i32> {
-        self.plane_db.get(&plane_id).unwrap().data_var.squawk.last().unwrap().clone()
+        self.plane_db
+            .get(&plane_id)
+            .unwrap()
+            .data_var
+            .squawk
+            .last()
+            .unwrap()
+            .clone()
+    }
+    
+    pub fn get_ground_speed(&self, plane_id: String) -> Option<f32> {
+        self.plane_db.get(&plane_id).unwrap().data_var.ground_speed.last().unwrap().clone()
+    }
+    
+    pub fn get_track(&self, plane_id: String) -> Option<f32> {
+        self.plane_db.get(&plane_id).unwrap().data_var.track.last().unwrap().clone()
     }
 
     pub fn remove_plane(&mut self, plane_id: String) {
@@ -87,12 +97,6 @@ impl SharedDataDb {
         }
         None
     }
-
-    // pub fn get_latest_squak(&self, plane_id: String) -> Option<f32> {
-    //     if self.plane_db.contains_key(&plane_id) {
-    //
-    //     }
-    // }
 
     pub fn get_call_sign(&self, plane_id: String) -> String {
         // TODO: Weired code, cleanup
@@ -144,11 +148,20 @@ impl SharedDataDb {
                 data_temp.data_var.longitude.push(longitude);
                 data_temp.data_var.altitude.push(altitude);
             }
+            if transmission_type == 4 {
+                data_temp.data_var.ground_speed.push(ground_speed);
+                data_temp.data_var.track.push(track);
+            }
             if transmission_type == 5 {
                 if call_sign.is_some() {
                     if call_sign.clone().unwrap().len() > 0 {
                         data_temp.data_const.call_sign = call_sign;
                     }
+                }
+            }
+            if transmission_type == 6 {
+                if squawk.is_some() {
+                    data_temp.data_var.squawk.push(squawk);
                 }
             }
         } else {
