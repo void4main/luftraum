@@ -17,6 +17,7 @@ mod terrain_color_spectrum;
 mod sbs;
 mod data_share;
 mod plugin_airspace;
+mod squawks;
 //mod plugin_groundstructure;
 
 #[derive(Resource)]
@@ -25,7 +26,6 @@ struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
-
 
 #[tokio::main]
 async fn main() {

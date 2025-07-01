@@ -1,6 +1,9 @@
 use crate::ShareStruct;
+
 use bevy::prelude::*;
 use bevy_egui::{EguiContextPass, EguiContexts, EguiPlugin, egui};
+use bevy_egui::egui::{Color32, RichText};
+use crate::squawks::{is_emergency_squawk, get_transponder_description};
 
 #[derive(Default, Resource)]
 pub struct UiState {
@@ -44,10 +47,17 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
             .show(ui, |ui| {
                 egui::Grid::new("some_unique_id").show(ui, |ui| {
                     for plane_id in plane_list.clone() {
+                        
                         // Squawk
+                        let squawk;
                         let mut squawk_str = "-".to_string();
-                        if let Some(squawk) = read_tmp.get_squawk(plane_id.to_string()) {
-                            squawk_str = squawk.to_string();
+                        let mut color = Color32::GRAY;
+                        if let Some(squawk_tmp) = read_tmp.get_squawk(plane_id.to_string()) {
+                            squawk = squawk_tmp;
+                            if let Some(squawk) = get_transponder_description(squawk) {
+                                color = squawk.1.to_color32();
+                            }
+                            squawk_str = squawk_tmp.to_string();
                         }
 
                         // Height level
@@ -76,7 +86,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
 
                         // Build row
                         ui.label(plane_id);
-                        ui.label(squawk_str);
+                        ui.label(RichText::new(squawk_str).color(color));
                         ui.label(height_level);
                         ui.label(ground_speed);
                         ui.label(track);

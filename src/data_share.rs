@@ -73,13 +73,27 @@ impl SharedDataDb {
             .unwrap()
             .clone()
     }
-    
+
     pub fn get_ground_speed(&self, plane_id: String) -> Option<f32> {
-        self.plane_db.get(&plane_id).unwrap().data_var.ground_speed.last().unwrap().clone()
+        self.plane_db
+            .get(&plane_id)
+            .unwrap()
+            .data_var
+            .ground_speed
+            .last()
+            .unwrap()
+            .clone()
     }
-    
+
     pub fn get_track(&self, plane_id: String) -> Option<f32> {
-        self.plane_db.get(&plane_id).unwrap().data_var.track.last().unwrap().clone()
+        self.plane_db
+            .get(&plane_id)
+            .unwrap()
+            .data_var
+            .track
+            .last()
+            .unwrap()
+            .clone()
     }
 
     pub fn remove_plane(&mut self, plane_id: String) {
