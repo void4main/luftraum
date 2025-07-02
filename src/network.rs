@@ -5,19 +5,7 @@ use tokio::net::TcpStream;
 use tokio::time::{Duration, sleep};
 
 use crate::data_share::*;
-
-// async fn network_connect(dst_address: &str) -> io::Result<TcpStream> {
-//     loop {
-//         match TcpStream::connect(dst_address).await {
-//             Ok(stream) => Ok(stream),
-//             Err(err) => {
-//                 eprintln!("Network connection error: {}", err);
-//                 sleep(Duration::from_secs(5)).await;
-//                 continue;
-//             }
-//         }
-//     }
-// }
+use crate::logging::log_messages;
 
 pub async fn connect_dump1090_sbs(
     data_share: Arc<Mutex<SharedDataDb>>,
@@ -49,7 +37,11 @@ pub async fn connect_dump1090_sbs(
         while let line = lines.next_line().await {
             match line {
                 Ok(Some(message)) => {
+                    
                     //println!("ORIG: {:?}", message);
+                    // Log everything to file by now
+                    log_messages(&message).unwrap();
+                    
                     // TODO: Move decoding to fn in decode.rs
                     // Split message into 22 pieces
                     let vec: Vec<&str> = message.split(',').collect();

@@ -84,6 +84,14 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                         // Call sign
                         let call_sign = read_tmp.get_call_sign(plane_id.to_string());
 
+                        // Is on ground
+                        let mut on_ground_str = "-".to_string();
+                        if let Some(is_on_ground) = read_tmp.is_on_ground(plane_id.to_string()) {
+                            if is_on_ground {
+                                on_ground_str = "on ground".to_string();
+                            }
+                        }
+                        
                         // Build row
                         ui.label(plane_id);
                         ui.label(RichText::new(squawk_str).color(color));
@@ -91,6 +99,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                         ui.label(ground_speed);
                         ui.label(track);
                         ui.label(call_sign);
+                        ui.label(on_ground_str);
                         ui.end_row();
                     }
                 });

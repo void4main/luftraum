@@ -1,4 +1,3 @@
-use std::hint::black_box;
 use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::color::palettes::tailwind::*;
 
@@ -85,14 +84,6 @@ pub fn setup(
         terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
         terrain.compute_normals();
     }
-    
-    // Meshlets test
-    // let terrain_meshlet = MeshletMesh::from_mesh(&terrain, 4).unwrap();
-    // let terrain_mesh_handle = meshlet_meshes.add(terrain_meshlet);
-
-    // Spawne Entity mit Meshlet
-
-    
     
     // Spawn terrain
     commands.spawn((

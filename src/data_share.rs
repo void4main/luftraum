@@ -95,6 +95,10 @@ impl SharedDataDb {
             .unwrap()
             .clone()
     }
+    
+    pub fn is_on_ground(&self, plane_id: String) -> Option<bool> {
+        self.plane_db.get(&plane_id).unwrap().data_var.is_on_ground.last().unwrap().clone()
+    }
 
     pub fn remove_plane(&mut self, plane_id: String) {
         self.plane_db.remove(&plane_id);
@@ -154,7 +158,7 @@ impl SharedDataDb {
             let data_temp = temp.get_mut(&hex_ident).unwrap();
             // TODO: Define message types, 3 = ES Airborne Position Message
 
-            // New data, so last_seen is 0
+            // New data, so last_seen is 0 = now
             data_temp.last_seen = 0;
 
             if transmission_type == 3 {

@@ -18,6 +18,7 @@ mod sbs;
 mod data_share;
 mod plugin_airspace;
 mod squawks;
+mod logging;
 //mod plugin_groundstructure;
 
 #[derive(Resource)]
