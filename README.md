@@ -8,6 +8,10 @@ Application to show live air traffic in 3D.
 Start `./dump1090 --device-type hackrf --net-sbs-port 30003` on localhost.
 Luftraum connects to 127.0.0.1:30003 statically by now.
 
+New features :-)
+* Egui, color coded special squawks, e.g. 1000, 7600, ...
+* Dump all received raw data to file
+
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1b.png)
 
