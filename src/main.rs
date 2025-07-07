@@ -9,7 +9,6 @@ mod decode;
 mod setup;
 mod plugin_egui;
 mod plugin_plane;
-mod plugin_datatransfer;
 mod srtm;
 pub mod math;
 mod terrain;
@@ -42,7 +41,7 @@ async fn main() {
     
     // Receive ADS-B data from dump1090
     tokio::spawn(async move {
-        let _a = connect_dump1090_sbs(tokio_plane_data_db).await;
+        let _a = connect_dump1090_sbs(&tokio_plane_data_db).await;
     });
     
     // Set application name
