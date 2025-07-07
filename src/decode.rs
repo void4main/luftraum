@@ -29,25 +29,13 @@ pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String
         let tmp_vertical_rate = vec[16].parse::<f32>().ok();
         let tmp_squawk = vec[17].parse::<i32>().ok();
         let tmp_alert = vec[18].parse::<usize>().unwrap_or(0);
-        let mut tmp_alert_bool = false;
-        if tmp_alert == 1 {
-            tmp_alert_bool = true;
-        }
+        let tmp_alert_bool = matches!(tmp_alert, 1);
         let tmp_emergency = vec[19].parse::<usize>().unwrap_or(0);
-        let mut tmp_emergency_bool = false;
-        if tmp_emergency == 1 {
-            tmp_emergency_bool = true;
-        }
+        let tmp_emergency_bool = matches!(tmp_emergency, 1);
         let tmp_spi = vec[20].parse::<usize>().unwrap_or(0);
-        let mut tmp_spi_bool = false;
-        if tmp_spi == 1 {
-            tmp_spi_bool = true;
-        }
+        let tmp_spi_bool = matches!(tmp_spi, 1);
         let tmp_is_on_ground = vec[21].parse::<usize>().unwrap_or(0);
-        let mut tmp_is_on_ground_bool = false;
-        if tmp_is_on_ground == 1 {
-            tmp_is_on_ground_bool = true;
-        }
+        let tmp_is_on_ground_bool = matches!(tmp_is_on_ground, 1);
 
         // Write data to 'global' struct
         let mut data_tmp = data_share.lock().unwrap();
