@@ -82,7 +82,7 @@ pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMu
                     let lon1 = map_range(lon, 5.0, 10.0, -1000.0, 1000.0);
                     let height = pos.unwrap().2;
 
-                    // TODO: Distribute scale factor
+                    // TODO: Distribute scale factor and clarify magic 0.3048
                     let scale = 0.00361;
                     plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1); // What was 0.3048 again?
                 }
@@ -108,6 +108,7 @@ pub fn create_planes(
 
     for plane_id in plane_list {
         let plane_id_tmp = String::from(plane_id);
+        // Check is plane already exists
         if !spawned_list.contains(&plane_id_tmp) {
             commands.spawn((
                 Plane::new(plane_id_tmp),
@@ -139,7 +140,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
             if ui_state.pos_ground_projection {
                 gizmos.cross(Vec3::new(lon1, 0.0, lat1), 5.0, RED_400);
             }
-            
+
             if ui_state.pos_ground_arrow {
                 gizmos.arrow(
                     Vec3::new(lon1, 0.0, lat1),
@@ -159,7 +160,7 @@ fn increase_plane_last_seen(
     timer.0.tick(time.delta());
     if timer.0.just_finished() {
         let mut read_tmp = read.0.lock().unwrap();
-        read_tmp.increase_last_seen(); // Increase by 10
+        read_tmp.increase_last_seen(10); // Increase by 10 sec
     }
 }
 

@@ -52,10 +52,10 @@ impl SharedDataDb {
         list_of_planes
     }
 
-    pub fn increase_last_seen(&mut self) {
+    pub fn increase_last_seen(&mut self, value_sec: usize) {
         // Increase last_seen of all plane entries
         for (_key, value) in self.plane_db.iter_mut() {
-            value.last_seen += 10;
+            value.last_seen += value_sec;
         }
     }
 
@@ -66,38 +66,29 @@ impl SharedDataDb {
     pub fn get_squawk(&self, plane_id: String) -> Option<i32> {
         self.plane_db
             .get(&plane_id)
-            .unwrap()
-            .data_var
-            .squawk
-            .last()
-            .unwrap()
-            .clone()
+            .and_then(|p_dataset| p_dataset.data_var.squawk.last().cloned())
+            .flatten()
     }
 
     pub fn get_ground_speed(&self, plane_id: String) -> Option<f32> {
         self.plane_db
             .get(&plane_id)
-            .unwrap()
-            .data_var
-            .ground_speed
-            .last()
-            .unwrap()
-            .clone()
+            .and_then(|p_dataset| p_dataset.data_var.ground_speed.last().cloned())
+            .flatten()
     }
 
     pub fn get_track(&self, plane_id: String) -> Option<f32> {
         self.plane_db
             .get(&plane_id)
-            .unwrap()
-            .data_var
-            .track
-            .last()
-            .unwrap()
-            .clone()
+            .and_then(|p_dataset| p_dataset.data_var.track.last().cloned())
+            .flatten()
     }
-    
+
     pub fn is_on_ground(&self, plane_id: String) -> Option<bool> {
-        self.plane_db.get(&plane_id).unwrap().data_var.is_on_ground.last().unwrap().clone()
+        self.plane_db
+            .get(&plane_id)
+            .and_then(|p_dataset| p_dataset.data_var.is_on_ground.last().cloned())
+            .flatten()
     }
 
     pub fn remove_plane(&mut self, plane_id: String) {
@@ -105,25 +96,19 @@ impl SharedDataDb {
     }
 
     pub fn get_latest_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
-        if self.plane_db.contains_key(&plane_id) {
-            let p_dataset = self.plane_db.get(&plane_id).unwrap();
-            let lat = p_dataset.data_var.latitude.last().unwrap();
-            let long = p_dataset.data_var.longitude.last().unwrap();
-            let alt = p_dataset.data_var.altitude.last().unwrap();
-            return lat
-                .and_then(|lat| long.and_then(|long| alt.map(|altitude| (lat, long, altitude))));
-        }
-        None
+        self.plane_db.get(&plane_id).and_then(|p_dataset| {
+            let lat = p_dataset.data_var.latitude.last()?;
+            let long = p_dataset.data_var.longitude.last()?;
+            let alt = p_dataset.data_var.altitude.last()?;
+            lat.and_then(|lat| long.and_then(|long| alt.map(|alt| (lat, long, alt))))
+        })
     }
 
     pub fn get_call_sign(&self, plane_id: String) -> String {
-        // TODO: Weired code, cleanup
-        if self.plane_db.contains_key(&plane_id) {
-            let p_dataset = self.plane_db.get(&plane_id).unwrap();
-            let call_sign = p_dataset.data_const.call_sign.clone().unwrap();
-            return call_sign;
-        }
-        "-".to_string()
+        self.plane_db
+            .get(&plane_id)
+            .and_then(|p_dataset| p_dataset.data_const.call_sign.clone())
+            .unwrap_or("-".to_string())
     }
 
     pub fn update_data(
