@@ -3,7 +3,7 @@ use crate::ShareStruct;
 use bevy::prelude::*;
 use bevy_egui::{EguiContextPass, EguiContexts, EguiPlugin, egui};
 use bevy_egui::egui::{Color32, RichText};
-use crate::squawks::{is_emergency_squawk, get_transponder_description};
+use crate::squawks::{get_transponder_description};
 
 #[derive(Default, Resource)]
 pub struct UiState {

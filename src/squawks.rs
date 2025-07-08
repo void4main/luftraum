@@ -64,7 +64,3 @@ fn get_transponder_codes() -> &'static HashMap<i32, (&'static str, TransponderCo
 pub fn get_transponder_description(squawk: i32) -> Option<&'static (&'static str, TransponderCodeColor)> {
      get_transponder_codes().get(&squawk).clone()
 }
-
-pub fn is_emergency_squawk(squawk: i32) -> bool {
-    matches!(squawk, 7500 | 7600 | 7700)
-}

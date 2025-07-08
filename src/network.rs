@@ -1,4 +1,3 @@
-use chrono::{NaiveDate, NaiveTime};
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::net::TcpStream;
@@ -26,7 +25,7 @@ pub async fn connect_dump1090_sbs(
             }
         };
 
-        // TODO: Check if connection is broken
+        // TODO: Check if connection is broken/lost
         println!("Connected to dump1090 at {}", addr);
 
         // Wrap the stream in a buffered reader for line-by-line processing
@@ -34,7 +33,8 @@ pub async fn connect_dump1090_sbs(
         let mut lines = reader.lines();
 
         // Process each line of data received from dump1090
-        while let line = lines.next_line().await {
+        'read: loop {
+            let line = lines.next_line().await;
             match line {
                 Ok(Some(message)) => {
                     // Log everything to file by now, message is the raw data set
@@ -44,11 +44,11 @@ pub async fn connect_dump1090_sbs(
                 }
                 Err(e) => {
                     eprintln!("Error reading line. Error: {:?}", e);
-                    break;
                 }
                 _ => {
                     eprintln!("Connection lost.");
-                    break 'network;
+                    sleep(Duration::from_secs(5)).await;
+                    break 'read;
                 }
             }
         }

@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use bevy::color::palettes::tailwind::{RED_400, YELLOW_500};
+use bevy::color::palettes::tailwind::{RED_400, YELLOW_500, BLUE_500};
+use bevy::color::*;
 use bevy::prelude::*;
 
 use crate::ShareStruct;
@@ -58,6 +59,13 @@ impl Plane {
     }
 }
 
+// TODO: Rename example code
+#[derive(Resource)]
+struct ChildEntities {
+    first_child: Entity,
+    second_child: Entity,
+}
+
 // Create update all planes positions
 pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMut<ShareStruct>) {
     // TODO: Beautify code
@@ -86,6 +94,12 @@ pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMu
                     let scale = 0.00361;
                     plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1); // What was 0.3048 again?
                 }
+
+                if let Some(track) = read_tmp.get_track(plane_id.to_string()) {
+                    let new_track = 360.0 - track;
+                    plane.0.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, new_track.to_radians(), 0.0);
+                }
+
                 break 'inner;
             }
         }
@@ -110,12 +124,30 @@ pub fn create_planes(
         let plane_id_tmp = String::from(plane_id);
         // Check is plane already exists
         if !spawned_list.contains(&plane_id_tmp) {
+            // Beim Spawnen
+            let mut child_entities = ChildEntities {
+                first_child: Entity::PLACEHOLDER,
+                second_child: Entity::PLACEHOLDER
+            };
+
             commands.spawn((
                 Plane::new(plane_id_tmp),
                 Mesh3d(meshes.add(Capsule3d::new(1.0, 1.0))),
                 MeshMaterial3d(materials.add(Color::WHITE)),
                 Transform::from_xyz(-1000.0, 0.0, 0.0),
-            ));
+            )).with_children(|parent| {
+                child_entities.first_child = parent.spawn((
+                    Mesh3d(meshes.add(Sphere { radius: 0.5 })),
+                    MeshMaterial3d(materials.add(Color::Srgba(RED_400))),
+                    Transform::from_xyz(-2.0, 0.0, 0.0),
+                )).id();
+
+                child_entities.second_child = parent.spawn((
+                    Mesh3d(meshes.add(Sphere::new(0.5))),
+                    MeshMaterial3d(materials.add(Color::Srgba(BLUE_500))),
+                    Transform::from_xyz(2.0, 0.0, 0.0),
+                )).id();
+            });
         }
     }
 }
@@ -136,6 +168,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
                 5.0,
                 RED_400,
             );
+
             // Indicate ground location
             if ui_state.pos_ground_projection {
                 gizmos.cross(Vec3::new(lon1, 0.0, lat1), 5.0, RED_400);
@@ -177,7 +210,7 @@ fn despawn_planes(
         for plane_id in query.iter_mut() {
             // Plane 'lifetime' if unseen
             // TODO: Setup in egui
-            if read_tmp.get_last_seen(plane_id.1.hex.clone()) > 60 {
+            if read_tmp.get_last_seen(plane_id.1.hex.clone()) >= 60 {
                 read_tmp.remove_plane(plane_id.1.hex.clone());
                 commands.entity(plane_id.0).despawn();
             }

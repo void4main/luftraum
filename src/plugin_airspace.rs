@@ -1,4 +1,4 @@
-use std::f32::consts::{FRAC_PI_2, PI};
+use std::f32::consts::{FRAC_PI_2};
 use bevy::app::{App, Update};
 use bevy::color::palettes::tailwind::{ORANGE_600, YELLOW_500};
 use bevy::math::{Vec3};
