@@ -33,6 +33,7 @@ pub fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     //mut meshlet_meshes: ResMut<Assets<MeshletMesh>>
+    asset_server: Res<AssetServer>
 ) {
     // Light
     commands.spawn((
@@ -244,7 +245,13 @@ pub fn setup(
     //     Transform::from_xyz(2000.0, 0.0, -2000.0),
     //     Terrain,
     // ));
+    // Spawn static plane for testing
 
+    commands.spawn((
+        SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("planes/plane.glb"))),
+                   // You can use the transform to give it a position
+                   Transform::from_xyz(0.0, 5.0, 0.0).with_scale(Vec3::splat(0.2)))
+    );
 
 }
 
@@ -275,6 +282,7 @@ pub fn support_structures(mut gizmos: Gizmos) {
     // let lon1 = map_range(138.732045, 135.0, 140.0, -1000.0, 1000.0);
     // let scale = 0.00361;
     // gizmos.cross(Vec3::new(lon1, 3776.24 * scale, lat1), 15.5, WHITE);
+
 }
 
 #[derive(Component)]

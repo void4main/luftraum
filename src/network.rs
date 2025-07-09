@@ -25,7 +25,7 @@ pub async fn connect_dump1090_sbs(
             }
         };
 
-        // TODO: Check if connection is broken/lost
+        // TODO: Log connection information or screen/egui indicator?
         println!("Connected to dump1090 at {}", addr);
 
         // Wrap the stream in a buffered reader for line-by-line processing
@@ -53,5 +53,6 @@ pub async fn connect_dump1090_sbs(
             }
         }
     }
+    // TODO: Fix this, can't be reached
     Ok(())
 }
