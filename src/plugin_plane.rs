@@ -96,8 +96,9 @@ pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMu
                 }
 
                 if let Some(track) = read_tmp.get_track(plane_id.to_string()) {
-                    let new_track = 90.0 + track;
-                    plane.0.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, new_track.to_radians(), 0.0);
+                    // Real degree to bevy degree
+                    let new_track: f32 = (180.0 - track + 360.0) % 360.0 ;
+                    plane.0.rotation = Quat::from_rotation_y(new_track.to_radians());
                 }
 
                 break 'inner;
@@ -133,9 +134,7 @@ pub fn create_planes(
 
             commands.spawn((
                 Plane::new(plane_id_tmp),
-                SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("planes/plane.glb"))),
-                //Mesh3d(meshes.add(Capsule3d::new(1.0, 1.0))),
-                //MeshMaterial3d(materials.add(Color::WHITE)),
+                SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("planes/plane-b.glb"))),
                 Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(0.2)),
             )).with_children(|parent| {
                 child_entities.first_child = parent.spawn((
