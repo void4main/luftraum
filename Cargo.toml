@@ -1,6 +1,6 @@
 [package]
 name = "luftraum"
-version = "0.1.6"
+version = "0.1.8"
 edition = "2024"
 
 [dev-dependencies]
@@ -15,13 +15,16 @@ harness = false
 bevy = "0.16.1"
 bevy_panorbit_camera = "0.26.0"
 
+
+bevy_egui = "0.35.1"
 # Egui crate 0.34.1 panics on app exit
-# bevy_egui = "0.34.1"
 # Crash fix
-bevy_egui = { git = "https://github.com/vladbat00/bevy_egui.git", branch = "fix-panic-on-window-close" }
+#bevy_egui = { git = "https://github.com/vladbat00/bevy_egui.git", branch = "fix-panic-on-window-close" }
 
+# Used for images within egui
+egui_extras = { version = "*", features = ["all_loaders"] }
+image = { version = "0.25.6", features = ["png"] }
 
-#tokio = { version = "1.44.2", features = ["full"] }
 tokio = { version = "1.45.1", features = ["full"] }
 chrono = "0.4.41"
 

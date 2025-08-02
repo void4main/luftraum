@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use bevy::color::palettes::tailwind::{RED_400, YELLOW_500, BLUE_500};
-use bevy::color::*;
+use bevy::color::palettes::tailwind::{BLUE_500, RED_400, YELLOW_500};
 use bevy::prelude::*;
 
 use crate::ShareStruct;
@@ -32,29 +31,29 @@ pub fn plugin(app: &mut App) {
 #[derive(Component, Debug)]
 pub struct Plane {
     pub hex: String,
-    pub mode: Option<String>,
-    pub squawk: Option<i32>,
-    pub flight: Option<String>,
-    pub altitude: Option<f32>,
-    pub speed: Option<f32>,
-    pub heading: Option<f32>,
-    pub latitude: Option<f32>,
-    pub longitude: Option<f32>,
-    pub rssi: Option<f32>,
+    //pub mode: Option<String>,
+    // pub squawk: Option<i32>,
+    // pub flight: Option<String>,
+    // pub altitude: Option<f32>,
+    // pub speed: Option<f32>,
+    // pub heading: Option<f32>,
+    // pub latitude: Option<f32>,
+    // pub longitude: Option<f32>,
+    // pub rssi: Option<f32>,
 }
 impl Plane {
     pub fn new(hex: String) -> Plane {
         Plane {
             hex,
-            mode: None,
-            squawk: None,
-            flight: None,
-            altitude: None,
-            speed: None,
-            heading: None,
-            latitude: None,
-            longitude: None,
-            rssi: None,
+            //mode: None,
+            // squawk: None,
+            // flight: None,
+            // altitude: None,
+            // speed: None,
+            // heading: None,
+            // latitude: None,
+            // longitude: None,
+            // rssi: None,
         }
     }
 }
@@ -97,7 +96,7 @@ pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMu
 
                 if let Some(track) = read_tmp.get_track(plane_id.to_string()) {
                     // Real degree to bevy degree
-                    let new_track: f32 = (180.0 - track + 360.0) % 360.0 ;
+                    let new_track: f32 = (180.0 - track + 360.0) % 360.0;
                     plane.0.rotation = Quat::from_rotation_y(new_track.to_radians());
                 }
 
@@ -113,7 +112,7 @@ pub fn create_planes(
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<(&mut Transform, &Plane)>,
     read: Res<ShareStruct>,
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
 ) {
     let read_tmp = read.0.lock().unwrap();
     let plane_list = read_tmp.get_planes_id();
@@ -129,26 +128,35 @@ pub fn create_planes(
             // Beim Spawnen
             let mut child_entities = ChildEntities {
                 first_child: Entity::PLACEHOLDER,
-                second_child: Entity::PLACEHOLDER
+                second_child: Entity::PLACEHOLDER,
             };
 
-            commands.spawn((
-                Plane::new(plane_id_tmp),
-                SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("planes/plane-b.glb"))),
-                Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(0.2)),
-            )).with_children(|parent| {
-                child_entities.first_child = parent.spawn((
-                    Mesh3d(meshes.add(Sphere { radius: 0.5 })),
-                    MeshMaterial3d(materials.add(Color::Srgba(RED_400))),
-                    Transform::from_xyz(-2.0, 0.0, 0.0),
-                )).id();
+            commands
+                .spawn((
+                    Plane::new(plane_id_tmp),
+                    SceneRoot(
+                        asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("planes/plane-b.glb")),
+                    ),
+                    Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(0.2)),
+                ))
+                .with_children(|parent| {
+                    child_entities.first_child = parent
+                        .spawn((
+                            Mesh3d(meshes.add(Sphere { radius: 0.5 })),
+                            MeshMaterial3d(materials.add(Color::Srgba(RED_400))),
+                            Transform::from_xyz(-2.0, 0.0, 0.0),
+                        ))
+                        .id();
 
-                child_entities.second_child = parent.spawn((
-                    Mesh3d(meshes.add(Sphere::new(0.5))),
-                    MeshMaterial3d(materials.add(Color::Srgba(BLUE_500))),
-                    Transform::from_xyz(2.0, 0.0, 0.0),
-                )).id();
-            });
+                    child_entities.second_child = parent
+                        .spawn((
+                            Mesh3d(meshes.add(Sphere::new(0.5))),
+                            MeshMaterial3d(materials.add(Color::Srgba(BLUE_500))),
+                            Transform::from_xyz(2.0, 0.0, 0.0),
+                        ))
+                        .id();
+                });
         }
     }
 }
@@ -210,10 +218,10 @@ fn despawn_planes(
         let mut read_tmp = read.0.lock().unwrap();
         for plane_id in query.iter_mut() {
             // Plane 'lifetime' if unseen
-            // TODO: Setup in egui
+            // TODO: Setup time in egui
             if read_tmp.get_last_seen(plane_id.1.hex.clone()) >= 60 {
-                read_tmp.remove_plane(plane_id.1.hex.clone());
                 commands.entity(plane_id.0).despawn();
+                read_tmp.remove_plane(plane_id.1.hex.clone());
             }
         }
     }

@@ -18,7 +18,8 @@ mod data_share;
 mod plugin_airspace;
 mod squawks;
 mod logging;
-//mod plugin_groundstructure;
+mod plugin_antenna;
+mod plugin_groundstructures;
 
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);

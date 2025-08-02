@@ -1,6 +1,8 @@
 use chrono::{NaiveDate, NaiveTime};
 use std::collections::HashMap;
+use crate::math::haversine_distance;
 
+// All ADS-B data is stored and shared between network and Bevy in here
 pub struct SharedDataDb {
     plane_db: HashMap<String, PlaneDataSet>, // PlaneID and related data
 }
@@ -38,6 +40,15 @@ struct PlaneDataVar {
     emergency: Vec<Option<bool>>,    // Emergency flag (true if emergency code is set)
     spi: Vec<Option<bool>>,          // Special Position Indicator flag
     is_on_ground: Vec<Option<bool>>, // Ground status flag
+}
+
+pub enum VerticalRate {
+    UpFast,
+    Up,
+    Level,
+    Down,
+    DownFast,
+    Unknown,
 }
 
 impl SharedDataDb {
@@ -111,6 +122,47 @@ impl SharedDataDb {
             .unwrap_or("-".to_string())
     }
 
+    pub fn get_vertical_rate(&self, plane_id: String) -> Option<f32> {
+        self.plane_db.get(&plane_id)
+            .and_then(|p_dataset | p_dataset.data_var.vertical_rate.last().cloned()).flatten()
+    }
+
+    pub fn get_simple_vertical_rate(&self, plane_id: String) -> String {
+        let vertical_rate = self.get_vertical_rate(plane_id.clone());
+        if vertical_rate.is_some() {
+            if vertical_rate.unwrap() > 0.0 {
+                return "/".to_string()
+            } else if  vertical_rate.unwrap() == 0.0 {
+                return "->".to_string()
+            } else if vertical_rate.unwrap() < 0.0 {
+                return "\\".to_string()
+            }
+        }
+        ".".to_string()
+    }
+
+    // TODO: Modify values, plane type dependency?
+    pub fn get_vertical_rate_description(&self, plane_id: String) -> VerticalRate {
+        let vertical_rate = self.get_vertical_rate(plane_id.clone());
+        match vertical_rate {
+            Some(rate) if rate > 500.0 => VerticalRate::UpFast,
+            Some(rate) if rate > 0.0 && rate <= 500.0 => VerticalRate::Up,
+            Some(rate) if rate >= -500.0 && rate < 0.0 => VerticalRate::Down,
+            Some(rate) if rate < -500.0 => VerticalRate::DownFast,
+            Some(rate) if rate == 0.0 => VerticalRate::Level,
+            _ => VerticalRate::Unknown,
+        }
+    }
+
+    pub fn get_plane_distance_to_lat_lon(&self, plane_id: String, lat: f32, lon: f32) -> Option<f32> {
+        let pos = self.get_latest_pos(plane_id);
+        if let Some(pos) = pos {
+            let distance = haversine_distance(pos.0, pos.1, lat, lon);
+            return Some(distance);
+        }
+        None
+    }
+
     pub fn update_data(
         &mut self,
         session_id: Option<String>,
@@ -152,6 +204,7 @@ impl SharedDataDb {
                 data_temp.data_var.altitude.push(altitude);
             }
             if transmission_type == 4 {
+                data_temp.data_var.vertical_rate.push(vertical_rate);
                 data_temp.data_var.ground_speed.push(ground_speed);
                 data_temp.data_var.track.push(track);
             }
@@ -165,6 +218,19 @@ impl SharedDataDb {
             if transmission_type == 6 {
                 if squawk.is_some() {
                     data_temp.data_var.squawk.push(squawk);
+                }
+            }
+            if transmission_type == 7 {
+                if altitude.is_some() {
+                    data_temp.data_var.altitude.push(altitude);
+                }
+                if is_on_ground.is_some() {
+                    data_temp.data_var.is_on_ground.push(is_on_ground);
+                }
+            }
+            if transmission_type == 8 {
+                if is_on_ground.is_some() {
+                    data_temp.data_var.is_on_ground.push(is_on_ground);
                 }
             }
         } else {

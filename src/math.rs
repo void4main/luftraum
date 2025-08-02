@@ -16,6 +16,7 @@ pub fn angle_rad_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     angle
 }
 
+// Returns distance in km
 pub fn haversine_distance(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
     const EARTH_RADIUS: f32 = 6371.00887714; // Earth radius in km
 
@@ -85,6 +86,20 @@ pub trait Convertable {
 impl Convertable for f32 {
     fn to_meters(&self) -> f32 {
         self * 0.3048 // Conversion factor from feet to meters
+    }
+}
+
+enum UpDownTendency {
+    Up,
+    Level,
+    Down,
+    Unknown
+}
+fn get_up_down_tendency(height_level: Option<Vec<f32>>) -> UpDownTendency {
+    if let Some(height_level) = height_level {
+        UpDownTendency::Up
+    } else {
+        UpDownTendency::Unknown
     }
 }
 

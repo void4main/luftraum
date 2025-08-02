@@ -1,5 +1,6 @@
-use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::color::palettes::tailwind::*;
+use bevy::color::palettes::css::ORANGE;
+use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
@@ -19,7 +20,9 @@ use crate::terrain_color_spectrum::*;
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(PanOrbitCameraPlugin)
-        .add_plugins(WireframePlugin { debug_flags: Default::default() })
+        .add_plugins(WireframePlugin {
+            debug_flags: Default::default(),
+        })
         //.add_plugins(MeshletPlugin { cluster_buffer_slots: 1024 })
         .add_systems(Startup, setup)
         .add_systems(
@@ -32,8 +35,8 @@ pub fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
     //mut meshlet_meshes: ResMut<Assets<MeshletMesh>>
-    asset_server: Res<AssetServer>
 ) {
     // Light
     commands.spawn((
@@ -52,7 +55,9 @@ pub fn setup(
 
     let size_dataset_row: u32 = 6000; // TODO: Determine from somewhere
 
+    //
     // Terrain
+    //
     let srtm_data = import_srtm(size_dataset_row as usize, 0);
     let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
     let terrain_width = 2000.0;
@@ -76,7 +81,7 @@ pub fn setup(
         for pos in positions.iter_mut().enumerate() {
             pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
         }
-    
+
         // Add colour scheme
         let colors: Vec<[f32; 4]> = positions
             .iter()
@@ -85,7 +90,7 @@ pub fn setup(
         terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
         terrain.compute_normals();
     }
-    
+
     // Spawn terrain
     commands.spawn((
         Mesh3d(meshes.add(terrain)),
@@ -94,19 +99,15 @@ pub fn setup(
         })),
         Terrain,
     ));
-    //
-    //
+
     //
     // Terrain 2, TODO: Terrain sizes and stitching etc. etc.
-    // 
-    //
-    //
     //
     let srtm_data = import_srtm(size_dataset_row as usize, 1);
     let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
     let terrain_width = 2000.0;
     let terrain_height = 2000.0;
-    
+
     // Build mesh
     let mut terrain = Mesh::from(
         Plane3d::default()
@@ -114,7 +115,7 @@ pub fn setup(
             .size(terrain_width, terrain_height)
             .subdivisions(sub_divisions),
     );
-    
+
     // Transform heights of mesh
     if let Some(VertexAttributeValues::Float32x3(positions)) =
         terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
@@ -125,7 +126,7 @@ pub fn setup(
         for pos in positions.iter_mut().enumerate() {
             pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
         }
-    
+
         // Add colour scheme
         let colors: Vec<[f32; 4]> = positions
             .iter()
@@ -134,7 +135,7 @@ pub fn setup(
         terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
         terrain.compute_normals();
     }
-    
+
     // Spawn terrain
     commands.spawn((
         Mesh3d(meshes.add(terrain)),
@@ -146,143 +147,83 @@ pub fn setup(
     ));
 
     //
+    // Test
     //
-    //
-    // Terrain 3, TODO: Terrain sizes and stitching etc. etc.
-    // 
-    //
-    //
-    //
-    // let srtm_data = import_srtm(size_dataset_row as usize, 2);
-    // //let sub_divisions = get_num_subdevisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
-    // let terrain_width = 1000.0;
-    // let terrain_height = 1000.0;
-    // 
-    // // Build mesh
-    // let mut terrain = Mesh::from(
-    //     Plane3d::default()
-    //         .mesh()
-    //         .size(terrain_width, terrain_height)
-    //         .subdivisions(sub_divisions),
-    // );
-    // 
-    // // Transform heights of mesh
-    // if let Some(VertexAttributeValues::Float32x3(positions)) =
-    //     terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
-    // {
-    //     // TODO: Get data from file
-    //     let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
-    //     let scale = pix_meter;
-    //     for pos in positions.iter_mut().enumerate() {
-    //         pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
-    //     }
-    // 
-    //     // Add colour scheme
-    //     let colors: Vec<[f32; 4]> = positions
-    //         .iter()
-    //         .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
-    //         .collect();
-    //     terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-    //     terrain.compute_normals();
-    // }
-    // 
-    // // Spawn terrain
-    // commands.spawn((
-    //     Mesh3d(meshes.add(terrain)),
-    //     MeshMaterial3d(materials.add(StandardMaterial {
-    //         ..Default::default()
-    //     })),
-    //     Transform::from_xyz(0.0, 0.0, -1000.0),
-    //     Terrain,
-    // ));
-    // 
-    //
-    //
-    // Terrain 4, TODO: Terrain sizes and stitching etc. etc.
-    // 
-    //
-    //
-    //
-    // let srtm_data = import_srtm(size_dataset_row as usize, 3);
-    // let sub_divisions = get_num_subdevisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
-    // let terrain_width = 2000.0;
-    // let terrain_height = 2000.0;
-    // 
-    // // Build mesh
-    // let mut terrain = Mesh::from(
-    //     Plane3d::default()
-    //         .mesh()
-    //         .size(terrain_width, terrain_height)
-    //         .subdivisions(sub_divisions),
-    // );
-    // 
-    // // Transform heights of mesh
-    // if let Some(VertexAttributeValues::Float32x3(positions)) =
-    //     terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
-    // {
-    //     // TODO: Get data from file
-    //     let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
-    //     let scale = pix_meter;
-    //     for pos in positions.iter_mut().enumerate() {
-    //         pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
-    //     }
-    // 
-    //     // Add colour scheme
-    //     let colors: Vec<[f32; 4]> = positions
-    //         .iter()
-    //         .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
-    //         .collect();
-    //     terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-    //     terrain.compute_normals();
-    // }
-    // 
-    // // Spawn terrain
-    // commands.spawn((
-    //     Mesh3d(meshes.add(terrain)),
-    //     MeshMaterial3d(materials.add(StandardMaterial {
-    //         ..Default::default()
-    //     })),
-    //     Transform::from_xyz(2000.0, 0.0, -2000.0),
-    //     Terrain,
-    // ));
-    // Spawn static plane for testing
 
-    commands.spawn((
-        SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("planes/plane.glb"))),
-                   // You can use the transform to give it a position
-                   Transform::from_xyz(0.0, 5.0, 0.0).with_scale(Vec3::splat(0.2)))
-    );
+    // let text_style = TextFont {
+    //     font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+    //     font_size: 20.0,
+    //     ..default()
+    // };
+    // let label_text_style = (text_style.clone(), TextColor(ORANGE.into()));
+    // // Text to describe the controls.
+    // commands.spawn((
+    //     Text::new("┌─ Luftraum \n│\n│\n│\n│"),
+    //     label_text_style.clone(),
+    //     Node {
+    //         position_type: PositionType::Absolute,
+    //         top: Val::Px(12.0),
+    //         left: Val::Px(220.0),
+    //         ..default()
+    //     },
+    // ));
+
+
+
+
 
 }
 
+// TODO: Place in plugin_groundstructures or/and load from file
 pub fn support_structures(mut gizmos: Gizmos) {
     // Antennenposition 53.5718392,9.9834842
     let lat1 = map_range(53.5718392, 50.0, 55.0, 1000.0, -1000.0);
     let lon1 = map_range(9.9834842, 5.0, 10.0, -1000.0, 1000.0);
     let scale = 0.00361;
     gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, PURPLE_600);
-    
+
     // HH Flughafen
     // 53.6308882,9.9888915
     let lat1 = map_range(53.6308882, 50.0, 55.0, 1000.0, -1000.0);
     let lon1 = map_range(9.9888915, 5.0, 10.0, -1000.0, 1000.0);
     let scale = 0.00361;
     gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, GREEN_400);
-    
+
     // HH Finkenwerder
     // 53.5351691,9.8381561
     let lat1 = map_range(53.5351691, 50.0, 55.0, 1000.0, -1000.0);
     let lon1 = map_range(9.8381561, 5.0, 10.0, -1000.0, 1000.0);
     let scale = 0.00361;
     gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, GREEN_400);
-    
+
+    // Hannover
+    // 52.22,9.44
+    let lat1 = map_range(52.22, 50.0, 55.0, 1000.0, -1000.0);
+    let lon1 = map_range(9.44, 5.0, 10.0, -1000.0, 1000.0);
+    let scale = 0.00361;
+    gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, YELLOW_200);
+
+    // Itzehoe
+    // 53.9324022,9.4830417,
+    let lat1 = map_range(53.9324022, 50.0, 55.0, 1000.0, -1000.0);
+    let lon1 = map_range(9.4830417, 5.0, 10.0, -1000.0, 1000.0);
+    let scale = 0.00361;
+    gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, YELLOW_200);
+
+    // Bremen
+    // 53.1195743,8.4059783
+    let lat1 = map_range(53.1195743, 50.0, 55.0, 1000.0, -1000.0);
+    let lon1 = map_range(8.4059783, 5.0, 10.0, -1000.0, 1000.0);
+    let scale = 0.00361;
+    gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, YELLOW_200);
+
+
     // Fuji Yama
     // 35.361865, 138.732045
     // let lat1 = map_range(35.361865, 35.0, 40.0, 1000.0, -1000.0);
     // let lon1 = map_range(138.732045, 135.0, 140.0, -1000.0, 1000.0);
     // let scale = 0.00361;
     // gizmos.cross(Vec3::new(lon1, 3776.24 * scale, lat1), 15.5, WHITE);
-
 }
 
 #[derive(Component)]
@@ -294,7 +235,6 @@ pub fn toggle_wireframe(
     landscapes: Query<Entity, (With<Terrain>, Without<Wireframe>)>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
-    
     if input.just_pressed(KeyCode::Space) {
         for terrain in &landscapes {
             commands.entity(terrain).insert(Wireframe);
