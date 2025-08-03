@@ -1,11 +1,10 @@
 use crate::ShareStruct;
 use crate::data_share::*;
 
+use std::collections::HashSet;
 use crate::squawks::get_transponder_description;
 use bevy::prelude::*;
-
 use bevy_egui::egui::{Color32, RichText};
-
 use bevy_egui::{
     EguiContexts, EguiGlobalSettings, EguiMultipassSchedule, EguiPlugin, EguiPrimaryContextPass,
     EguiUserTextures, PrimaryEguiContext, egui
@@ -34,8 +33,12 @@ pub struct UiState {
     value: f32,
     inverted: bool,
     egui_texture_handle: Option<egui::TextureHandle>,
+    pub plane_ids: HashSet<String>,
     pub pos_ground_projection: bool,
     pub pos_ground_arrow: bool,
+    pub max_distance_to_antenna: f32,
+    pub min_vertical_rate: f32,
+    pub max_vertical_rate: f32,
 }
 
 pub fn plugin(app: &mut App) {
@@ -76,7 +79,19 @@ fn ui_system(
 
         // Settings section
         ui.collapsing("Statistics", |ui| {
-            ui.label("Hello");
+            let max_dist = ui_state.max_distance_to_antenna;
+            let max_dist_label = format!("Max. distance to antenna: {:.1} km", max_dist);
+            let min_vertical_rate = ui_state.min_vertical_rate;
+            let min_vertical_rate_label = format!("Min. vertical rate: {:.1} fpm", min_vertical_rate);
+            let max_vertical_rate = ui_state.max_vertical_rate;
+            let max_vertical_rate_label = format!("Max. vertical rate: {:.1} fpm", max_vertical_rate);
+            let planes_seen = ui_state.plane_ids.len();
+            let planes_seen_label = format!("Planes seen: {}", planes_seen);
+            ui.label(max_dist_label);
+            ui.label(min_vertical_rate_label);
+            ui.label(max_vertical_rate_label);
+            ui.label(planes_seen_label);
+
         });
 
         // List all planes
@@ -84,7 +99,11 @@ fn ui_system(
             .default_open(true)
             .show(ui, |ui| {
                 egui::Grid::new("some_unique_id").show(ui, |ui| {
+
                     for plane_id in plane_list.clone() {
+
+                        // Statistics
+                        ui_state.plane_ids.insert(plane_id.to_string());
 
                         // Squawk
                         let squawk;
@@ -129,16 +148,27 @@ fn ui_system(
                         // Vertical rate
                         let vertical_rate = read_tmp
                             .get_vertical_rate(plane_id.to_string())
-                            .unwrap_or_default()
-                            .to_string();
+                            .unwrap_or_default();
+                        // Update statistics
+                        if vertical_rate < ui_state.min_vertical_rate {
+                            ui_state.min_vertical_rate = vertical_rate;
+                        }
+                        if vertical_rate > ui_state.max_vertical_rate {
+                            ui_state.max_vertical_rate = vertical_rate;
+                        }
+                        let vertical_rate_str = vertical_rate.to_string();
 
                         // Vertical rate
-                        let vertical_rate_str =
+                        let vertical_rate_simple_str =
                             read_tmp.get_simple_vertical_rate(plane_id.to_string());
 
                         // Distance to antenna
                         // Antennenposition 53.5718392,9.9834842
                         let dist_to_antenna = read_tmp.get_plane_distance_to_lat_lon(plane_id.to_string(), 53.5718392, 9.9834842).unwrap_or(0.0);
+                        // Update statistics
+                        if dist_to_antenna > ui_state.max_distance_to_antenna {
+                            ui_state.max_distance_to_antenna = dist_to_antenna.clone();
+                        }
 
                         let rate_description = read_tmp.get_vertical_rate_description(plane_id.to_string());
                         let mut bevy_icon_handle: Handle<Image>;
@@ -154,12 +184,12 @@ fn ui_system(
                         ui.label(plane_id);
                         ui.label(RichText::new(squawk_str).color(color));
                         ui.label(height_level);
+                        ui.label(vertical_rate_str);
+                        //ui.label(vertical_rate_simple_str);
                         ui.label(ground_speed);
                         ui.label(track);
                         ui.label(call_sign);
-                        ui.label(on_ground_str);
-                        ui.label(vertical_rate);
-                        ui.label(vertical_rate_str);
+                        // ui.label(on_ground_str);
                         ui.label(format!("{:05.1}", dist_to_antenna));
 
                         // ui.add(egui::widgets::Image::new(
