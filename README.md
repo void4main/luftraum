@@ -12,6 +12,7 @@ New features :-)
 * Egui, color coded special squawks, e.g. 1000, 7600, ...
 * Dump all received raw data to file
 * With first GLB plane model
+* Some statistics
 
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16b.png)
