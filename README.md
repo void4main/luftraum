@@ -13,8 +13,8 @@ New features :-)
 * Dump all received raw data to file
 * With first GLB plane model
 
-![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.png)
-![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1b.png)
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16.png)
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16b.png)
 
 I got my SRTM ASCII data here:
 ### SRTM data source
