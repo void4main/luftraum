@@ -80,7 +80,7 @@ pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMu
         'inner: for mut plane in query.iter_mut() {
             if plane_id == plane.1.hex {
                 // Update position if all Some has data
-                let pos = read_tmp.get_latest_pos(plane_id.to_string());
+                let pos = read_tmp.get_latest_known_pos(plane_id.to_string());
 
                 if pos.is_some() {
                     let lat = pos.unwrap().0;
@@ -167,7 +167,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
 
     // TODO: Distribute map ranges
     for plane in list {
-        for plane_data in read_tmp.get_latest_pos(plane.to_string()) {
+        for plane_data in read_tmp.get_latest_known_pos(plane.to_string()) {
             let lat1 = map_range(plane_data.0, 50.0, 55.0, 1000.0, -1000.0);
             let lon1 = map_range(plane_data.1, 5.0, 10.0, -1000.0, 1000.0);
             // TODO: Distribute scale factor

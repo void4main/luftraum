@@ -115,6 +115,17 @@ impl SharedDataDb {
         })
     }
 
+    // Return last not None except empty
+    pub fn get_latest_known_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
+        // let last_some = vec.iter().rev().find_map(|x| *x);
+        self.plane_db.get(&plane_id).and_then(|p_dataset| {
+            let lat = p_dataset.data_var.latitude.iter().rev().find_map(|lat| *lat);
+            let long = p_dataset.data_var.longitude.iter().rev().find_map(|long| *long);
+            let alt = p_dataset.data_var.altitude.iter().rev().find_map(|alt| *alt);
+            lat.and_then(|lat| long.and_then(|long| alt.map(|alt| (lat, long, alt))))
+        })
+    }
+
     pub fn get_call_sign(&self, plane_id: String) -> String {
         self.plane_db
             .get(&plane_id)
@@ -155,7 +166,7 @@ impl SharedDataDb {
     }
 
     pub fn get_plane_distance_to_lat_lon(&self, plane_id: String, lat: f32, lon: f32) -> Option<f32> {
-        let pos = self.get_latest_pos(plane_id);
+        let pos = self.get_latest_known_pos(plane_id);
         if let Some(pos) = pos {
             let distance = haversine_distance(pos.0, pos.1, lat, lon);
             return Some(distance);
@@ -197,11 +208,15 @@ impl SharedDataDb {
 
             // New data, so last_seen is 0 = now
             data_temp.last_seen = 0;
-
-            if transmission_type == 3 {
+            if transmission_type == 2 {
+                data_temp.data_var.altitude.push(altitude);
                 data_temp.data_var.latitude.push(latitude);
                 data_temp.data_var.longitude.push(longitude);
+            }
+            if transmission_type == 3 {
                 data_temp.data_var.altitude.push(altitude);
+                data_temp.data_var.latitude.push(latitude);
+                data_temp.data_var.longitude.push(longitude);
             }
             if transmission_type == 4 {
                 data_temp.data_var.vertical_rate.push(vertical_rate);
@@ -209,6 +224,7 @@ impl SharedDataDb {
                 data_temp.data_var.track.push(track);
             }
             if transmission_type == 5 {
+                data_temp.data_var.altitude.push(altitude);
                 if call_sign.is_some() {
                     if call_sign.clone().unwrap().len() > 0 {
                         data_temp.data_const.call_sign = call_sign;
@@ -216,6 +232,7 @@ impl SharedDataDb {
                 }
             }
             if transmission_type == 6 {
+                data_temp.data_var.altitude.push(altitude);
                 if squawk.is_some() {
                     data_temp.data_var.squawk.push(squawk);
                 }

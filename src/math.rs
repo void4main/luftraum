@@ -26,19 +26,19 @@ pub fn haversine_distance(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
     let lat2_rad = lat2 * PI / 180.0;
     let lon2_rad = lon2 * PI / 180.0;
 
-    // Differences
-    let dlat = lat2_rad - lat1_rad;
-    let dlon = lon2_rad - lon1_rad;
+    // Deltas
+    let d_lat = lat2_rad - lat1_rad;
+    let d_lon = lon2_rad - lon1_rad;
 
     // Haversine formula
-    let a = (dlat / 2.0).sin().powi(2) + lat1_rad.cos() * lat2_rad.cos() * (dlon / 2.0).sin().powi(2);
+    let a = (d_lat / 2.0).sin().powi(2) + lat1_rad.cos() * lat2_rad.cos() * (d_lon / 2.0).sin().powi(2);
     let c = 2.0 * a.sqrt().asin();
 
     EARTH_RADIUS * c
 }
 
 pub fn get_pixel_pos(lat: f32, lon: f32, p_x: f32, p_y: f32, cell_rows: usize, cell_cols: usize, llx: f32, lly: f32, cell_dist: f32) -> (f32, f32) {
-    // Map a geolocation to the pixel ground plane
+    // Map a geolocation to the pixel ground plane, depends on SBS data format
     let llx_max = llx * cell_dist * cell_cols as f32 + 0.5 * llx;
     let lly_max = lly * cell_dist * cell_rows as f32 + 0.5 * lly;
     let p_pos_x = map_range(lat, llx, llx_max, -p_x/2.0, p_x/2.0);
@@ -46,13 +46,14 @@ pub fn get_pixel_pos(lat: f32, lon: f32, p_x: f32, p_y: f32, cell_rows: usize, c
     (p_pos_x, p_pos_y)
 }
 
-/// Return value is bevy pixel equivalent from meter 
+/// Return value is bevy pixel equivalent to meter
 pub fn get_pix_m(meter: f32, rows: usize, rows_width_deg: f32, pixel_plane_y: f32) -> f32 {
     // TODO: Check if 'accurate' enough
     const METER_DEG: f32 = 111227.5;
     let plane_length_m = rows_width_deg * METER_DEG * rows as f32;
     let pix_per_meter = pixel_plane_y / plane_length_m;
-    pix_per_meter
+    // pix_per_meter
+    pix_per_meter * meter
 }
 
 /// Linear mapping of two ranges
@@ -105,6 +106,7 @@ fn get_up_down_tendency(height_level: Option<Vec<f32>>) -> UpDownTendency {
 
 #[cfg(test)]
 mod tests {
+    use bevy::color::{Color, ColorToComponents};
     use crate::terrain_color_spectrum::ColorSpectrum::ImhofModified;
     use crate::terrain_color_spectrum::get_height_color;
     use super::*;
@@ -141,6 +143,7 @@ mod tests {
     fn test_get_height_color() {
         let height = 2000.0;
         let result = get_height_color(height, ImhofModified);
+        assert_eq!(result, Color::srgb(0.754, 0.643, 0.523).to_linear().to_f32_array());
     }
 
     #[test]

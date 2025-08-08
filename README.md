@@ -17,8 +17,14 @@ New features :-)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16b.png)
 
-I got my SRTM ASCII data here:
+### Hardware
+Indoor setup
+* HackRF One
+* RTL-STR Model V3
+* Jetvision A3 antenna (ADS-B 1090MHz)
+
 ### SRTM data source
+I got my SRTM ASCII data here:
 Jarvis A., H.I. Reuter, A.  Nelson, E. Guevara, 2008, Hole-filled  seamless SRTM
 data V4, International  Centre for Tropical  Agriculture (CIAT), available  from
 http://srtm.csi.cgiar.org

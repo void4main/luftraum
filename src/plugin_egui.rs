@@ -1,44 +1,24 @@
-use crate::ShareStruct;
-use crate::data_share::*;
-
-use std::collections::HashSet;
-use crate::squawks::get_transponder_description;
 use bevy::prelude::*;
 use bevy_egui::egui::{Color32, RichText};
-use bevy_egui::{
-    EguiContexts, EguiGlobalSettings, EguiMultipassSchedule, EguiPlugin, EguiPrimaryContextPass,
-    EguiUserTextures, PrimaryEguiContext, egui
-};
+use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
+use std::collections::HashSet;
 
-struct PlaneImages {
-    plane_up: Handle<Image>,
-    plane_level: Handle<Image>,
-    plane_down: Handle<Image>,
-}
-
-impl FromWorld for PlaneImages {
-    fn from_world(world: &mut World) -> Self {
-        let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        Self {
-            plane_up: asset_server.load("planes/plane_egui_t_up.png"),
-            plane_level: asset_server.load("planes/plane_egui_t.png"),
-            plane_down: asset_server.load("planes/plane_egui_t_down.png"),
-        }
-    }
-}
+use crate::ShareStruct;
+use crate::squawks::get_transponder_description;
 
 #[derive(Default, Resource)]
 pub struct UiState {
-    label: String,
-    value: f32,
-    inverted: bool,
-    egui_texture_handle: Option<egui::TextureHandle>,
     pub plane_ids: HashSet<String>,
     pub pos_ground_projection: bool,
     pub pos_ground_arrow: bool,
+    // TODO: Move statistics calculations
     pub max_distance_to_antenna: f32,
     pub min_vertical_rate: f32,
     pub max_vertical_rate: f32,
+    pub min_height_level: Option<f32>,
+    pub max_height_level: f32,
+    pub min_speed: Option<f32>,
+    pub max_speed: f32,
 }
 
 pub fn plugin(app: &mut App) {
@@ -48,22 +28,10 @@ pub fn plugin(app: &mut App) {
         .add_systems(EguiPrimaryContextPass, ui_system);
 }
 
-fn ui_system(
-    mut contexts: EguiContexts,
-    read: Res<ShareStruct>,
-    mut ui_state: ResMut<UiState>,
-    mut is_initialized: Local<bool>,
-    mut rendered_texture_id: Local<egui::TextureId>,
-    plane_images: Local<PlaneImages>,
-) {
+fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: ResMut<UiState>) {
     let read_tmp = read.0.lock().unwrap();
     let plane_list = read_tmp.get_planes_id();
     let number_of_planes = plane_list.len();
-
-    if !*is_initialized {
-        *is_initialized = true;
-        *rendered_texture_id = contexts.add_image(plane_images.plane_down.clone_weak());
-    }
 
     let heading = format!("Planes ({number_of_planes})");
 
@@ -82,26 +50,57 @@ fn ui_system(
             let max_dist = ui_state.max_distance_to_antenna;
             let max_dist_label = format!("Max. distance to antenna: {:.1} km", max_dist);
             let min_vertical_rate = ui_state.min_vertical_rate;
-            let min_vertical_rate_label = format!("Min. vertical rate: {:.1} fpm", min_vertical_rate);
+            let min_vertical_rate_label =
+                format!("Min. vertical rate: {:.1} fpm", min_vertical_rate);
             let max_vertical_rate = ui_state.max_vertical_rate;
-            let max_vertical_rate_label = format!("Max. vertical rate: {:.1} fpm", max_vertical_rate);
+            let max_vertical_rate_label =
+                format!("Max. vertical rate: {:.1} fpm", max_vertical_rate);
             let planes_seen = ui_state.plane_ids.len();
             let planes_seen_label = format!("Planes seen: {}", planes_seen);
+            //let min_height_level = ui_state.min_height_level;
+            let min_speed_for_label = ui_state
+                .min_speed
+                .map_or("-".to_string(), |speed| speed.to_string());
+            let min_speed_label = format!("Min. speed: {:.1} kt", min_speed_for_label);
+            let max_speed_label = format!("Max. speed: {:.1} kt", ui_state.max_speed);
+            let min_height_level_for_label = ui_state
+                .min_height_level
+                .map_or("-".to_string(), |v| v.to_string());
+            let min_height_level_label =
+                format!("Min. height level: {} ft", min_height_level_for_label);
+            let max_height_level_label =
+                format!("Max. height level: {} ft", ui_state.max_height_level);
+
+            ui.label(planes_seen_label);
             ui.label(max_dist_label);
+            ui.label(min_speed_label);
+            ui.label(max_speed_label);
             ui.label(min_vertical_rate_label);
             ui.label(max_vertical_rate_label);
-            ui.label(planes_seen_label);
-
+            ui.label(min_height_level_label);
+            ui.label(max_height_level_label);
         });
-
+        // TODO: Push statistics calc to different place
         // List all planes
         egui::CollapsingHeader::new(heading)
             .default_open(true)
             .show(ui, |ui| {
                 egui::Grid::new("some_unique_id").show(ui, |ui| {
+                    // Headline
+                    ui.label("ID");
+                    ui.label("Squawk");
+                    ui.label("Height");
+                    ui.label("Vertical");
+                    //ui.label(vertical_rate_simple_str);
+                    ui.label("Speed");
+                    ui.label("Track");
+                    ui.label("Call");
+                    // ui.label(on_ground_str);
+                    ui.label("DTA");
+                    ui.end_row();
+
 
                     for plane_id in plane_list.clone() {
-
                         // Statistics
                         ui_state.plane_ids.insert(plane_id.to_string());
 
@@ -119,15 +118,39 @@ fn ui_system(
 
                         // Height level
                         let height_level = read_tmp
-                            .get_latest_pos(plane_id.to_string())
+                            .get_latest_known_pos(plane_id.to_string())
                             .map(|pos| pos.2.to_string())
                             .unwrap_or("-".to_string());
+                        // Update statistics
+                        if let Some(height_level) = read_tmp
+                            .get_latest_known_pos(plane_id.to_string())
+                            .map(|pos| pos.2)
+                        {
+                            if height_level > ui_state.max_height_level {
+                                ui_state.max_height_level = height_level;
+                            }
+                            if height_level
+                                < ui_state.min_height_level.map_or(40000.0, |value| value)
+                            {
+                                ui_state.min_height_level = Some(height_level);
+                            }
+                        }
 
                         // Speed over ground
                         let ground_speed = read_tmp
                             .get_ground_speed(plane_id.to_string())
                             .map(|speed| speed.to_string())
                             .unwrap_or("-".to_string());
+
+                        if let Some(ground_speed) = read_tmp.get_ground_speed(plane_id.to_string())
+                        {
+                            if ground_speed > ui_state.max_speed {
+                                ui_state.max_speed = ground_speed;
+                            }
+                            if ground_speed < ui_state.min_speed.map_or(1000.0, |value| value) {
+                                ui_state.min_speed = Some(ground_speed);
+                            }
+                        }
 
                         // Track
                         let track = read_tmp
@@ -139,11 +162,11 @@ fn ui_system(
                         let call_sign = read_tmp.get_call_sign(plane_id.to_string());
 
                         // Is on ground
-                        let on_ground_str = read_tmp
-                            .is_on_ground(plane_id.to_string())
-                            .filter(|&is_on_ground| is_on_ground)
-                            .map(|_| "on ground".to_string())
-                            .unwrap_or("-".to_string());
+                        // let on_ground_str = read_tmp
+                        //     .is_on_ground(plane_id.to_string())
+                        //     .filter(|&is_on_ground| is_on_ground)
+                        //     .map(|_| "on ground".to_string())
+                        //     .unwrap_or("-".to_string());
 
                         // Vertical rate
                         let vertical_rate = read_tmp
@@ -158,27 +181,20 @@ fn ui_system(
                         }
                         let vertical_rate_str = vertical_rate.to_string();
 
-                        // Vertical rate
-                        let vertical_rate_simple_str =
-                            read_tmp.get_simple_vertical_rate(plane_id.to_string());
-
                         // Distance to antenna
                         // Antennenposition 53.5718392,9.9834842
-                        let dist_to_antenna = read_tmp.get_plane_distance_to_lat_lon(plane_id.to_string(), 53.5718392, 9.9834842).unwrap_or(0.0);
+                        // TODO: Fix static setup
+                        let dist_to_antenna = read_tmp
+                            .get_plane_distance_to_lat_lon(
+                                plane_id.to_string(),
+                                53.5718392,
+                                9.9834842,
+                            )
+                            .unwrap_or(0.0);
                         // Update statistics
                         if dist_to_antenna > ui_state.max_distance_to_antenna {
                             ui_state.max_distance_to_antenna = dist_to_antenna.clone();
                         }
-
-                        let rate_description = read_tmp.get_vertical_rate_description(plane_id.to_string());
-                        let mut bevy_icon_handle: Handle<Image>;
-                        // match rate_description {
-                        //     VerticalRate::UpFast => { bevy_icon_handle = images.plane_icon_up.clone_weak() },
-                        //     VerticalRate::Up => { bevy_icon_handle = images.plane_icon_up.clone_weak() },
-                        //     VerticalRate::Down => { bevy_icon_handle = images.plane_icon_down.clone_weak() },
-                        //     VerticalRate::DownFast => { bevy_icon_handle = images.plane_icon_down.clone_weak() },
-                        //     _ => { bevy_icon_handle = images.plane_icon.clone_weak() }
-                        // }
 
                         // Build row
                         ui.label(plane_id);
@@ -191,12 +207,6 @@ fn ui_system(
                         ui.label(call_sign);
                         // ui.label(on_ground_str);
                         ui.label(format!("{:05.1}", dist_to_antenna));
-
-                        // ui.add(egui::widgets::Image::new(
-                        //     *rendered_texture_id,
-                        //     [256.0, 256.0],
-                        // ));
-
                         ui.end_row();
                     }
                 });
