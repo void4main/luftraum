@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::color::palettes::tailwind::{BLUE_500, RED_400, YELLOW_500};
+use bevy::color::palettes::tailwind::{BLUE_500, GREEN_500, RED_400, YELLOW_500};
 use bevy::prelude::*;
 
 use crate::ShareStruct;
@@ -28,7 +28,7 @@ pub fn plugin(app: &mut App) {
     );
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Resource)]
 pub struct Plane {
     pub hex: String,
     //pub mode: Option<String>,
@@ -190,6 +190,24 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
                     YELLOW_500,
                 );
             }
+
+            // TODO: Clean up this mess
+            if ui_state.plane_selected.contains_key(&plane.to_string()) {
+                let &checked = ui_state.plane_selected.get(&plane.to_string()).unwrap();
+                if checked {
+
+                    let ant_lat1 = map_range(53.5718392, 50.0, 55.0, 1000.0, -1000.0);
+                    let ant_lon1 = map_range(9.9834842, 5.0, 10.0, -1000.0, 1000.0);
+                    let ant_scale = 0.00361;
+
+                    gizmos.line(
+                        Vec3::new(lon1, plane_data.2 * scale * 0.3048, lat1),
+                        Vec3::new(ant_lon1, 1.0 * scale * 0.3048, ant_lat1),
+                        GREEN_500,
+                    )
+                }
+
+            }
         }
     }
 }
@@ -212,6 +230,7 @@ fn despawn_planes(
     mut timer: ResMut<TimerResource>,
     mut query: Query<(Entity, &Plane)>,
     read: Res<ShareStruct>,
+    mut ui_state: ResMut<UiState>,
 ) {
     timer.0.tick(time.delta());
     if timer.0.just_finished() {
@@ -220,7 +239,11 @@ fn despawn_planes(
             // Plane 'lifetime' if unseen
             // TODO: Setup time in egui
             if read_tmp.get_last_seen(plane_id.1.hex.clone()) >= 60 {
+                // Remove Bevy entity
                 commands.entity(plane_id.0).despawn();
+                // Remove from Egui ui state
+                ui_state.plane_selected.remove(&plane_id.1.hex.clone());
+                // Remove shared data
                 read_tmp.remove_plane(plane_id.1.hex.clone());
             }
         }

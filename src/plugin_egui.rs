@@ -1,10 +1,11 @@
+use crate::ShareStruct;
+use crate::plugin_plane::Plane;
+use crate::squawks::get_transponder_description;
+use bevy::color::palettes::basic::WHITE;
 use bevy::prelude::*;
 use bevy_egui::egui::{Color32, RichText};
 use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
-use std::collections::HashSet;
-
-use crate::ShareStruct;
-use crate::squawks::get_transponder_description;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Default, Resource)]
 pub struct UiState {
@@ -19,6 +20,23 @@ pub struct UiState {
     pub max_height_level: f32,
     pub min_speed: Option<f32>,
     pub max_speed: f32,
+    // Checkboxes
+    pub plane_selected: HashMap<String, bool>,
+}
+
+impl UiState {
+    fn contains(&mut self, key: &str) -> &mut bool {
+        self.plane_selected.entry(key.to_string()).or_insert(false)
+    }
+
+    fn get_or_create(&mut self, key: &str) -> &mut bool {
+        self.plane_selected.entry(key.to_string()).or_insert(false)
+    }
+    fn set_state(&mut self, key: &str, value: bool) {
+        if let Some(existing) = self.plane_selected.get_mut(key) {
+            *existing = value;
+        }
+    }
 }
 
 pub fn plugin(app: &mut App) {
@@ -42,10 +60,12 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                 &mut ui_state.pos_ground_projection,
                 "Project position to ground",
             );
-            ui.checkbox(&mut ui_state.pos_ground_arrow, "Arrow position to ground");
+            ui.checkbox(
+                &mut ui_state.pos_ground_arrow,
+                "Arrow position to ground");
         });
 
-        // Settings section
+        // Statistics section
         ui.collapsing("Statistics", |ui| {
             let max_dist = ui_state.max_distance_to_antenna;
             let max_dist_label = format!("Max. distance to antenna: {:.1} km", max_dist);
@@ -57,7 +77,6 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                 format!("Max. vertical rate: {:.1} fpm", max_vertical_rate);
             let planes_seen = ui_state.plane_ids.len();
             let planes_seen_label = format!("Planes seen: {}", planes_seen);
-            //let min_height_level = ui_state.min_height_level;
             let min_speed_for_label = ui_state
                 .min_speed
                 .map_or("-".to_string(), |speed| speed.to_string());
@@ -80,6 +99,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
             ui.label(min_height_level_label);
             ui.label(max_height_level_label);
         });
+
         // TODO: Push statistics calc to different place
         // List all planes
         egui::CollapsingHeader::new(heading)
@@ -87,19 +107,19 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
             .show(ui, |ui| {
                 egui::Grid::new("some_unique_id").show(ui, |ui| {
                     // Headline
-                    ui.label("ID");
-                    ui.label("Squawk");
-                    ui.label("Height");
-                    ui.label("Vertical");
-                    //ui.label(vertical_rate_simple_str);
-                    ui.label("Speed");
-                    ui.label("Track");
-                    ui.label("Call");
-                    // ui.label(on_ground_str);
-                    ui.label("DTA");
+                    ui.centered_and_justified(|ui| {
+                        ui.label(RichText::new("HEX").strong());
+                    });
+                    let labels = [
+                        "Squawk", "Height", "Vertical", "Speed", "Track", "Call", "DTA",
+                    ];
+                    for label in labels {
+                        //ui.label(RichText::new(label).strong());
+                        ui.label(label);
+                    }
                     ui.end_row();
 
-
+                    // List of planes
                     for plane_id in plane_list.clone() {
                         // Statistics
                         ui_state.plane_ids.insert(plane_id.to_string());
@@ -121,6 +141,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                             .get_latest_known_pos(plane_id.to_string())
                             .map(|pos| pos.2.to_string())
                             .unwrap_or("-".to_string());
+
                         // Update statistics
                         if let Some(height_level) = read_tmp
                             .get_latest_known_pos(plane_id.to_string())
@@ -172,6 +193,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                         let vertical_rate = read_tmp
                             .get_vertical_rate(plane_id.to_string())
                             .unwrap_or_default();
+
                         // Update statistics
                         if vertical_rate < ui_state.min_vertical_rate {
                             ui_state.min_vertical_rate = vertical_rate;
@@ -196,8 +218,17 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                             ui_state.max_distance_to_antenna = dist_to_antenna.clone();
                         }
 
+                        let checkbox_value = ui_state
+                            .plane_selected
+                            .entry(plane_id.to_string())
+                            .or_insert(false);
+
                         // Build row
-                        ui.label(plane_id);
+                        ui.checkbox(
+                            checkbox_value,
+                            RichText::new(plane_id.to_string()).color(Color32::LIGHT_RED),
+                        );
+                        //ui.label(plane_id);
                         ui.label(RichText::new(squawk_str).color(color));
                         ui.label(height_level);
                         ui.label(vertical_rate_str);
