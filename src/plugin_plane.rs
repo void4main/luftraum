@@ -1,14 +1,13 @@
 use std::time::Duration;
 
-use bevy::color::palettes::tailwind::{BLUE_500, GREEN_500, RED_400, YELLOW_500};
+use bevy::color::palettes::tailwind::{BLUE_500, RED_400, YELLOW_200, YELLOW_500};
 use bevy::prelude::*;
+use bevy::render::mesh::{Indices, PrimitiveTopology}; // Plane track mesh
+use bevy::render::render_asset::RenderAssetUsages;
 
 use crate::ShareStruct;
 use crate::math::*;
 use crate::plugin_egui::*;
-
-#[derive(Resource)]
-struct TimerResource(Timer);
 
 pub fn plugin(app: &mut App) {
     //app.add_systems(Startup, spawn_plane)
@@ -24,36 +23,27 @@ pub fn plugin(app: &mut App) {
             update_route,
             increase_plane_last_seen,
             despawn_planes,
+            show_tracks,
         ),
     );
 }
 
-#[derive(Component, Debug, Resource)]
+#[derive(Resource)]
+struct TimerResource(Timer);
+
+#[derive(Component, Resource)]
 pub struct Plane {
-    pub hex: String,
-    //pub mode: Option<String>,
-    // pub squawk: Option<i32>,
-    // pub flight: Option<String>,
-    // pub altitude: Option<f32>,
-    // pub speed: Option<f32>,
-    // pub heading: Option<f32>,
-    // pub latitude: Option<f32>,
-    // pub longitude: Option<f32>,
-    // pub rssi: Option<f32>,
+    pub hex: String,              // Plane hex-id
+    pub pos: Vec<[f32; 3]>, // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
+    pub track_id: Option<Entity>, // Bevy entity id of track
 }
+
 impl Plane {
     pub fn new(hex: String) -> Plane {
         Plane {
             hex,
-            //mode: None,
-            // squawk: None,
-            // flight: None,
-            // altitude: None,
-            // speed: None,
-            // heading: None,
-            // latitude: None,
-            // longitude: None,
-            // rssi: None,
+            pos: Vec::new(),
+            track_id: None,
         }
     }
 }
@@ -92,8 +82,12 @@ pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMu
                     // TODO: Distribute scale factor and clarify magic 0.3048
                     let scale = 0.00361;
                     plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1); // What was 0.3048 again?
+
+                    // Save position, to show flight path
+                    plane.1.pos.push([lon1, height * scale * 0.3048, lat1]);
                 }
 
+                // Rotate plane
                 if let Some(track) = read_tmp.get_track(plane_id.to_string()) {
                     // Real degree to bevy degree
                     let new_track: f32 = (180.0 - track + 360.0) % 360.0;
@@ -148,7 +142,6 @@ pub fn create_planes(
                             Transform::from_xyz(-2.0, 0.0, 0.0),
                         ))
                         .id();
-
                     child_entities.second_child = parent
                         .spawn((
                             Mesh3d(meshes.add(Sphere::new(0.5))),
@@ -192,21 +185,19 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
             }
 
             // TODO: Clean up this mess
-            if ui_state.plane_selected.contains_key(&plane.to_string()) {
-                let &checked = ui_state.plane_selected.get(&plane.to_string()).unwrap();
+            if ui_state.plane_checkbox.contains_key(&plane.to_string()) {
+                let &checked = ui_state.plane_checkbox.get(&plane.to_string()).unwrap();
                 if checked {
-
                     let ant_lat1 = map_range(53.5718392, 50.0, 55.0, 1000.0, -1000.0);
                     let ant_lon1 = map_range(9.9834842, 5.0, 10.0, -1000.0, 1000.0);
-                    let ant_scale = 0.00361;
+                    let scale = 0.00361;
 
                     gizmos.line(
                         Vec3::new(lon1, plane_data.2 * scale * 0.3048, lat1),
                         Vec3::new(ant_lon1, 1.0 * scale * 0.3048, ant_lat1),
-                        GREEN_500,
-                    )
+                        YELLOW_200,
+                    );
                 }
-
             }
         }
     }
@@ -242,10 +233,98 @@ fn despawn_planes(
                 // Remove Bevy entity
                 commands.entity(plane_id.0).despawn();
                 // Remove from Egui ui state
-                ui_state.plane_selected.remove(&plane_id.1.hex.clone());
+                ui_state.plane_checkbox.remove(&plane_id.1.hex.clone());
                 // Remove shared data
                 read_tmp.remove_plane(plane_id.1.hex.clone());
+                // Remove track
+                plane_id
+                    .1
+                    .track_id
+                    .map(|track| commands.entity(track).despawn());
             }
         }
     }
+}
+
+pub fn show_tracks(
+    mut commands: Commands,
+    mut query: Query<(&mut Transform, &mut Plane)>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut ui_state: ResMut<UiState>,
+) {
+    for mut plane_id in query.iter_mut() {
+        // Spawn track if plane is selected in egui and has not been built
+        if plane_id.1.pos.len() >= 4 {
+        if *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id == None {
+            // Build mesh only if useful
+
+                let all_pos = plane_id.1.pos.clone();
+                let mesh = plane_track_mesh(all_pos.clone());
+                let id = commands
+                    .spawn((
+                        Mesh3d(meshes.add(mesh)),
+                        MeshMaterial3d(materials.add(StandardMaterial {
+                            base_color: Color::srgb(0.2, 0.7, 0.9),
+                            cull_mode: None,
+                            double_sided: true,
+                            unlit: true,
+                            ..Default::default()
+                        })),
+                    ))
+                    .id();
+                plane_id.1.track_id = Some(id);
+            } else if !*ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id.is_some()
+            {
+                plane_id
+                    .1
+                    .track_id
+                    .map(|track| commands.entity(track).despawn());
+                plane_id.1.track_id = None;
+            }
+        }
+    }
+}
+
+fn plane_track_mesh(positions: Vec<[f32; 3]>) -> Mesh {
+    let ground: f32 = 0.0; // lower y-pos
+
+    let mut all_positions = positions.clone();
+    let mut indices: Vec<u32> = Vec::new();
+    //let mut normals = Vec::new();
+    //let mut uvs = Vec::new();
+
+    // Add projection to ground
+    for i in &positions {
+        let g_pos = [i[0], ground, i[2]];
+        all_positions.push(g_pos)
+    }
+
+    let half = all_positions.len() / 2;
+
+    // Top triangles
+    for i in 0..half - 1 {
+        indices.push(i as u32);
+        indices.push((i + 1) as u32);
+        indices.push((i + half) as u32);
+    }
+
+    // Bottom triangles
+    for j in half + 1..all_positions.len() {
+        indices.push(j as u32);
+        indices.push((j - 1) as u32);
+        indices.push((j - half) as u32);
+    }
+
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::RENDER_WORLD,
+    );
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, all_positions);
+    //mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+    //mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+
+    mesh.insert_indices(Indices::U32(indices));
+    mesh.compute_normals();
+    mesh
 }

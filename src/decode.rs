@@ -3,13 +3,13 @@ use chrono::{NaiveDate, NaiveTime};
 use std::sync::{Arc, Mutex};
 
 pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String) {
-    if message.is_ascii() && message.len() > 0 && message.len() < 255 {
+    if message.len() > 0 && message.len() < 255 && message.is_ascii() { // Basic checks ;-)
         // Split message into (22) pieces by definition of SBS messages
         let vec: Vec<&str> = message.split(',').collect();
 
         if vec.len() == 22 {
             // Map each field to needed data type
-            // TODO: More sophisticated decoding
+            // TODO: More sophisticated decoding, crypt messages on transport
             let tmp_transmission_type = vec[1].parse::<usize>().ok().unwrap();
             let tmp_generated_date = NaiveDate::parse_from_str(vec[6], "%Y/%m/%d").ok().unwrap();
             let tmp_generated_time = NaiveTime::parse_from_str(vec[7], "%H:%M:%S%.f")

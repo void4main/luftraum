@@ -21,6 +21,11 @@ mod logging;
 mod plugin_antenna;
 mod plugin_groundstructures;
 
+extern crate jemallocator;
+
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 

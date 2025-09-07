@@ -1,18 +1,10 @@
 use bevy::color::palettes::tailwind::*;
-use bevy::color::palettes::css::ORANGE;
 use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
-// use bevy::{
-//     pbr::{
-//         experimental::meshlet::MeshletPlugin,Material,
-//         CascadeShadowConfigBuilder, DirectionalLightShadowMap,
-//     },
-//     prelude::*,};
-//use bevy::pbr::experimental::meshlet::MeshletMesh;
 use crate::math::*;
 use crate::plugin_plane::*;
 use crate::srtm::*;
@@ -23,7 +15,6 @@ pub fn plugin(app: &mut App) {
         .add_plugins(WireframePlugin {
             debug_flags: Default::default(),
         })
-        //.add_plugins(MeshletPlugin { cluster_buffer_slots: 1024 })
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -35,8 +26,6 @@ pub fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
-    //mut meshlet_meshes: ResMut<Assets<MeshletMesh>>
 ) {
     // Light
     commands.spawn((
@@ -48,7 +37,7 @@ pub fn setup(
     commands.spawn((
         (
             Camera3d::default(),
-            Transform::from_xyz(0., 500., 0.).looking_at(Vec3::ZERO, Vec3::Y),
+            Transform::from_xyz(0., 1000., 0.).looking_at(Vec3::ZERO, Vec3::Y),
         ),
         PanOrbitCamera::default(),
     ));
@@ -58,6 +47,7 @@ pub fn setup(
     //
     // Terrain
     //
+    // TODO: Reduce vertices
     let srtm_data = import_srtm(size_dataset_row as usize, 0);
     let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
     let terrain_width = 2000.0;
@@ -87,6 +77,7 @@ pub fn setup(
             .iter()
             .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
             .collect();
+
         terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
         terrain.compute_normals();
     }
@@ -104,7 +95,8 @@ pub fn setup(
     // Terrain 2, TODO: Terrain sizes and stitching etc. etc.
     //
     let srtm_data = import_srtm(size_dataset_row as usize, 1);
-    let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
+    let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0 again?
+
     let terrain_width = 2000.0;
     let terrain_height = 2000.0;
 
@@ -167,11 +159,6 @@ pub fn setup(
     //         ..default()
     //     },
     // ));
-
-
-
-
-
 }
 
 // TODO: Place in plugin_groundstructures or/and load from file
@@ -216,7 +203,6 @@ pub fn support_structures(mut gizmos: Gizmos) {
     let lon1 = map_range(8.4059783, 5.0, 10.0, -1000.0, 1000.0);
     let scale = 0.00361;
     gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, YELLOW_200);
-
 
     // Fuji Yama
     // 35.361865, 138.732045

@@ -1,6 +1,6 @@
 [package]
 name = "luftraum"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2024"
 
 [dev-dependencies]
@@ -11,16 +11,21 @@ name = "benchmarks"
 harness = false
 
 [dependencies]
+# Test for now
+jemallocator = "0.5.4"
 # bevy = { version = "0.16.1", features = ["meshlet", "meshlet_processor"] }
 bevy = "0.16.1"
 bevy_panorbit_camera = "0.26.0"
-bevy_egui = "0.35.1"
+bevy_egui = "0.36"
+
+# To zip position data (lat, lon, height)
+itertools = "0.14.0"
 
 # Used for images within egui
 egui_extras = { version = "*", features = ["all_loaders"] }
 image = { version = "0.25.6", features = ["png"] }
 
-tokio = { version = "1.45.1", features = ["full"] }
+tokio = { version = "1.47.1", features = ["full"] }
 chrono = "0.4.41"
 
 # Performance monitoring

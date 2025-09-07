@@ -21,22 +21,23 @@ pub struct UiState {
     pub min_speed: Option<f32>,
     pub max_speed: f32,
     // Checkboxes
-    pub plane_selected: HashMap<String, bool>,
+    pub plane_checkbox: HashMap<String, bool>,
 }
 
 impl UiState {
-    fn contains(&mut self, key: &str) -> &mut bool {
-        self.plane_selected.entry(key.to_string()).or_insert(false)
+    // Check if a plane is selected
+    pub fn selected(&mut self, key: &str) -> &mut bool {
+        self.plane_checkbox.entry(key.to_string()).or_insert(false)
     }
 
-    fn get_or_create(&mut self, key: &str) -> &mut bool {
-        self.plane_selected.entry(key.to_string()).or_insert(false)
+    pub fn add_plane(&mut self, key: &str) {
+        self.plane_checkbox.insert(key.to_string(), false);
     }
-    fn set_state(&mut self, key: &str, value: bool) {
-        if let Some(existing) = self.plane_selected.get_mut(key) {
-            *existing = value;
-        }
+
+    pub fn rm_plane(&mut self, key: &str) {
+        self.plane_checkbox.remove(key);
     }
+
 }
 
 pub fn plugin(app: &mut App) {
@@ -213,15 +214,13 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                                 9.9834842,
                             )
                             .unwrap_or(0.0);
+
                         // Update statistics
                         if dist_to_antenna > ui_state.max_distance_to_antenna {
                             ui_state.max_distance_to_antenna = dist_to_antenna.clone();
                         }
 
-                        let checkbox_value = ui_state
-                            .plane_selected
-                            .entry(plane_id.to_string())
-                            .or_insert(false);
+                        let checkbox_value = ui_state.selected(plane_id);
 
                         // Build row
                         ui.checkbox(

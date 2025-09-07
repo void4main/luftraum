@@ -205,26 +205,20 @@ impl SharedDataDb {
             // TODO: implement update
             let data_temp = temp.get_mut(&hex_ident).unwrap();
             // TODO: Define message types, 3 = ES Airborne Position Message
-
+            // TODO: Clean up, do not differentiate between types
             // New data, so last_seen is 0 = now
             data_temp.last_seen = 0;
-            if transmission_type == 2 {
-                data_temp.data_var.altitude.push(altitude);
-                data_temp.data_var.latitude.push(latitude);
-                data_temp.data_var.longitude.push(longitude);
-            }
-            if transmission_type == 3 {
-                data_temp.data_var.altitude.push(altitude);
-                data_temp.data_var.latitude.push(latitude);
-                data_temp.data_var.longitude.push(longitude);
-            }
+            data_temp.data_var.transmission_type.push(transmission_type);
+            data_temp.data_var.altitude.push(altitude);
+            data_temp.data_var.latitude.push(latitude);
+            data_temp.data_var.longitude.push(longitude);
+
             if transmission_type == 4 {
                 data_temp.data_var.vertical_rate.push(vertical_rate);
                 data_temp.data_var.ground_speed.push(ground_speed);
                 data_temp.data_var.track.push(track);
             }
             if transmission_type == 5 {
-                data_temp.data_var.altitude.push(altitude);
                 if call_sign.is_some() {
                     if call_sign.clone().unwrap().len() > 0 {
                         data_temp.data_const.call_sign = call_sign;
@@ -232,15 +226,11 @@ impl SharedDataDb {
                 }
             }
             if transmission_type == 6 {
-                data_temp.data_var.altitude.push(altitude);
                 if squawk.is_some() {
                     data_temp.data_var.squawk.push(squawk);
                 }
             }
             if transmission_type == 7 {
-                if altitude.is_some() {
-                    data_temp.data_var.altitude.push(altitude);
-                }
                 if is_on_ground.is_some() {
                     data_temp.data_var.is_on_ground.push(is_on_ground);
                 }
