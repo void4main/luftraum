@@ -13,8 +13,9 @@ New features :-)
 * Dump all received raw data to file
 * With first GLB plane model
 * Some statistics
+* Flight path (optional)
 
-![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16.png)
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.17.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16b.png)
 
 ### Hardware
