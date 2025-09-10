@@ -1,11 +1,11 @@
-use crate::ShareStruct;
-use crate::plugin_plane::Plane;
-use crate::squawks::get_transponder_description;
-use bevy::color::palettes::basic::WHITE;
+use std::collections::{HashMap, HashSet};
+
 use bevy::prelude::*;
 use bevy_egui::egui::{Color32, RichText};
 use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
-use std::collections::{HashMap, HashSet};
+
+use crate::ShareStruct;
+use crate::squawks::get_transponder_description;
 
 #[derive(Default, Resource)]
 pub struct UiState {
@@ -29,15 +29,6 @@ impl UiState {
     pub fn selected(&mut self, key: &str) -> &mut bool {
         self.plane_checkbox.entry(key.to_string()).or_insert(false)
     }
-
-    pub fn add_plane(&mut self, key: &str) {
-        self.plane_checkbox.insert(key.to_string(), false);
-    }
-
-    pub fn rm_plane(&mut self, key: &str) {
-        self.plane_checkbox.remove(key);
-    }
-
 }
 
 pub fn plugin(app: &mut App) {
@@ -115,7 +106,6 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                         "Squawk", "Height", "Vertical", "Speed", "Track", "Call", "DTA",
                     ];
                     for label in labels {
-                        //ui.label(RichText::new(label).strong());
                         ui.label(label);
                     }
                     ui.end_row();
@@ -148,14 +138,12 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                             .get_latest_known_pos(plane_id.to_string())
                             .map(|pos| pos.2)
                         {
-                            if height_level > ui_state.max_height_level {
-                                ui_state.max_height_level = height_level;
-                            }
-                            if height_level
-                                < ui_state.min_height_level.map_or(40000.0, |value| value)
-                            {
-                                ui_state.min_height_level = Some(height_level);
-                            }
+                            ui_state.max_height_level = ui_state.max_height_level.max(height_level);
+                            ui_state.min_height_level = Some(
+                                ui_state
+                                    .min_height_level
+                                    .map_or(height_level, |min| min.min(height_level)),
+                            );
                         }
 
                         // Speed over ground
@@ -192,17 +180,16 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
 
                         // Vertical rate
                         let vertical_rate = read_tmp
-                            .get_vertical_rate(plane_id.to_string())
-                            .unwrap_or_default();
+                            .get_vertical_rate(plane_id.to_string());
 
                         // Update statistics
-                        if vertical_rate < ui_state.min_vertical_rate {
-                            ui_state.min_vertical_rate = vertical_rate;
+                        if vertical_rate.is_some() {
+                            ui_state.min_vertical_rate = ui_state.min_vertical_rate.min(vertical_rate.unwrap());
+                            ui_state.max_vertical_rate = ui_state.max_vertical_rate.max(vertical_rate.unwrap());
                         }
-                        if vertical_rate > ui_state.max_vertical_rate {
-                            ui_state.max_vertical_rate = vertical_rate;
-                        }
-                        let vertical_rate_str = vertical_rate.to_string();
+                        
+                        let vertical_rate_str = vertical_rate.map(|t| t.to_string())
+                            .unwrap_or("-".to_string());
 
                         // Distance to antenna
                         // Antennenposition 53.5718392,9.9834842
@@ -214,6 +201,11 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                                 9.9834842,
                             )
                             .unwrap_or(0.0);
+                        let dist_to_antenna_str = if dist_to_antenna == 0.0 {
+                            "-".to_owned()
+                        } else {
+                            format!("{:05.1}", dist_to_antenna)
+                        };
 
                         // Update statistics
                         if dist_to_antenna > ui_state.max_distance_to_antenna {
@@ -236,7 +228,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                         ui.label(track);
                         ui.label(call_sign);
                         // ui.label(on_ground_str);
-                        ui.label(format!("{:05.1}", dist_to_antenna));
+                        ui.label(dist_to_antenna_str);
                         ui.end_row();
                     }
                 });
