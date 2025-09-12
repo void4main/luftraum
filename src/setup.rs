@@ -42,13 +42,11 @@ pub fn setup(
         PanOrbitCamera::default(),
     ));
 
-    let size_dataset_row: u32 = 6000; // TODO: Determine from somewhere
-
     //
     // Terrain
     //
-    // TODO: Reduce vertices
-    let srtm_data = import_srtm(size_dataset_row as usize, 0);
+    // TODO: Reduce vertices!!!!
+    let srtm_data = import_srtm(0); // Imports dataset 0
     let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0?
     let terrain_width = 2000.0;
     let terrain_height = 2000.0;
@@ -66,7 +64,7 @@ pub fn setup(
         terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
     {
         // TODO: Get data from file
-        let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
+        let pix_meter = get_pix_m(1.0, srtm_data.num_rows as usize, 0.0008333, terrain_width);
         let scale = pix_meter;
         for pos in positions.iter_mut().enumerate() {
             pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
@@ -94,7 +92,7 @@ pub fn setup(
     //
     // Terrain 2, TODO: Terrain sizes and stitching etc. etc.
     //
-    let srtm_data = import_srtm(size_dataset_row as usize, 1);
+    let srtm_data = import_srtm(1);
     let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0 again?
 
     let terrain_width = 2000.0;
@@ -113,7 +111,7 @@ pub fn setup(
         terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
     {
         // TODO: Get data from file
-        let pix_meter = get_pix_m(1.0, size_dataset_row as usize, 0.0008333, terrain_width);
+        let pix_meter = get_pix_m(1.0, srtm_data.num_rows as usize, 0.0008333, terrain_width);
         let scale = pix_meter;
         for pos in positions.iter_mut().enumerate() {
             pos.1[1] = srtm_data.terrain_data[pos.0] * scale;

@@ -1,9 +1,10 @@
 use crate::terrain::SrtmTerrain;
 
-pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
+pub fn import_srtm(dataset: usize) -> SrtmTerrain {
     // TODO: Replace static hack
     println!("Importing SRTM data ...");
     let mut data: String = "".to_string();
+    
     if dataset == 0 {
         data = include_str!(".././assets/srtm_38_02.asc").to_string(); // Elbe, Hamburg
     } else if dataset == 1 {
@@ -13,7 +14,7 @@ pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
     } else if dataset == 3 {  
         data = include_str!(".././assets/srtm_39_01.asc").to_string(); // Ostsee
     }
-    // let data = include_str!(".././assets/srtm_64_05.asc").to_string(); // Fuji
+    
     let mut data_lines = data.lines();
 
     let num_cols = data_lines
@@ -22,6 +23,7 @@ pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
         .split_whitespace()
         .last()
         .map_or(0, |s| s.parse().unwrap());
+    
     let num_rows = data_lines
         .next()
         .unwrap()
@@ -35,6 +37,7 @@ pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
         .split_whitespace()
         .last()
         .map_or(0.0, |s| s.parse().unwrap());
+    
     let yll_corner: f32 = data_lines
         .next()
         .unwrap()
@@ -48,6 +51,7 @@ pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
         .split_whitespace()
         .last()
         .map_or(0.0, |s| s.parse().unwrap());
+    
     let no_data_value: f32 = data_lines
         .next()
         .unwrap()
@@ -62,7 +66,7 @@ pub fn import_srtm(res: usize, dataset: usize) -> SrtmTerrain {
             if height == no_data_value {
                 height = 0.0;
             }
-            if date.0 >= res {
+            if date.0 >= num_cols {
                 break;
             }
             data_vec.push(height);

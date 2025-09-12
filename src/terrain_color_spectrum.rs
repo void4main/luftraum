@@ -61,6 +61,7 @@ const IMHOF_COLORS: &[[f32; 4]] = &[
     [1.0, 1.0, 1.0, 1.0],        // >= 9000: srgb(1.0, 1.0, 1.0).to_linear()
 ];
 
+/// Returns the pre-assigned and modified Imhof color assigned to a height
 pub fn get_height_color(height_m: f32, colors: ColorSpectrum) -> [f32; 4] {
     match colors {
         ColorSpectrum::ImhofModified => {

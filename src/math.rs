@@ -16,9 +16,11 @@ pub fn angle_rad_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     angle
 }
 
-// Returns distance in km
+/// Calculates the Haversine distance between two geolocations
+/// and returns distance in km
+/// Uses Earth radius of 6378 km
 pub fn haversine_distance(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
-    const EARTH_RADIUS: f32 = 6371.00887714; // Earth radius in km
+    const EARTH_RADIUS_KM: f32 = 6378.0;
 
     // Convert degrees to radians
     let lat1_rad = lat1 * PI / 180.0;
@@ -31,22 +33,33 @@ pub fn haversine_distance(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
     let d_lon = lon2_rad - lon1_rad;
 
     // Haversine formula
-    let a = (d_lat / 2.0).sin().powi(2) + lat1_rad.cos() * lat2_rad.cos() * (d_lon / 2.0).sin().powi(2);
+    let a =
+        (d_lat / 2.0).sin().powi(2) + lat1_rad.cos() * lat2_rad.cos() * (d_lon / 2.0).sin().powi(2);
     let c = 2.0 * a.sqrt().asin();
 
-    EARTH_RADIUS * c
+    EARTH_RADIUS_KM * c
 }
 
-pub fn get_pixel_pos(lat: f32, lon: f32, p_x: f32, p_y: f32, cell_rows: usize, cell_cols: usize, llx: f32, lly: f32, cell_dist: f32) -> (f32, f32) {
+pub fn get_pixel_pos(
+    lat: f32,
+    lon: f32,
+    p_x: f32,
+    p_y: f32,
+    cell_rows: usize,
+    cell_cols: usize,
+    llx: f32,
+    lly: f32,
+    cell_dist: f32,
+) -> (f32, f32) {
     // Map a geolocation to the pixel ground plane, depends on SBS data format
     let llx_max = llx * cell_dist * cell_cols as f32 + 0.5 * llx;
     let lly_max = lly * cell_dist * cell_rows as f32 + 0.5 * lly;
-    let p_pos_x = map_range(lat, llx, llx_max, -p_x/2.0, p_x/2.0);
-    let p_pos_y = map_range(lon, lly, lly_max, -p_y/2.0, p_y/2.0);
+    let p_pos_x = map_range(lat, llx, llx_max, -p_x / 2.0, p_x / 2.0);
+    let p_pos_y = map_range(lon, lly, lly_max, -p_y / 2.0, p_y / 2.0);
     (p_pos_x, p_pos_y)
 }
 
-/// Return value is bevy pixel equivalent to meter
+/// Return value is Bevy pixel equivalent to meter
 pub fn get_pix_m(meter: f32, rows: usize, rows_width_deg: f32, pixel_plane_y: f32) -> f32 {
     // TODO: Check if 'accurate' enough
     const METER_DEG: f32 = 111227.5;
@@ -63,9 +76,6 @@ pub fn map_range(value: f32, in_min: f32, in_max: f32, out_min: f32, out_max: f3
 }
 
 pub fn get_number_triangles(subs: usize) -> usize {
-    if subs <= 0 {
-        return 0;
-    };
     (subs + 1) * (subs + 1) * 2
 }
 
@@ -77,7 +87,7 @@ pub fn get_number_of_triangles_row(subs: usize) -> usize {
 }
 
 pub fn get_num_subdivisions(data_points_row: u32) -> u32 {
-    ((data_points_row as f32 / 2.0).floor() as u32) - 1 
+    ((data_points_row as f32 / 2.0).floor() as u32) - 1
 }
 
 pub trait Convertable {
@@ -90,26 +100,12 @@ impl Convertable for f32 {
     }
 }
 
-enum UpDownTendency {
-    Up,
-    Level,
-    Down,
-    Unknown
-}
-fn get_up_down_tendency(height_level: Option<Vec<f32>>) -> UpDownTendency {
-    if let Some(height_level) = height_level {
-        UpDownTendency::Up
-    } else {
-        UpDownTendency::Unknown
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use bevy::color::{Color, ColorToComponents};
+    use super::*;
     use crate::terrain_color_spectrum::ColorSpectrum::ImhofModified;
     use crate::terrain_color_spectrum::get_height_color;
-    use super::*;
+    use bevy::color::{Color, ColorToComponents};
 
     #[test]
     fn test_map_range() {
@@ -120,7 +116,7 @@ mod tests {
         assert_eq!(result, 500.0);
         let result = map_range(55.0, 50.0, 55.0, 500.0, -500.0);
         assert_eq!(result, -500.0);
-        
+
         // Longitude to Bevy pixel plane
         let result = map_range(5.0, 5.0, 10.0, -500.0, 500.0);
         assert_eq!(result, -500.0);
@@ -129,7 +125,7 @@ mod tests {
         let result = map_range(7.5, 5.0, 10.0, -500.0, 500.0);
         assert_eq!(result, 0.0);
     }
-    
+
     fn test_get_pix_m() {
         let meter = 0.0;
         let result = get_pix_m(meter, 6000, 0.00083, 2000.0);
@@ -139,11 +135,14 @@ mod tests {
         let result = get_pix_m(meter, 6000, 0.00083, 2000.0);
         assert_eq!(result, 1.0);
     }
-    
+
     fn test_get_height_color() {
         let height = 2000.0;
         let result = get_height_color(height, ImhofModified);
-        assert_eq!(result, Color::srgb(0.754, 0.643, 0.523).to_linear().to_f32_array());
+        assert_eq!(
+            result,
+            Color::srgb(0.754, 0.643, 0.523).to_linear().to_f32_array()
+        );
     }
 
     #[test]
@@ -157,5 +156,4 @@ mod tests {
         let distance = haversine_distance(ny_lat, ny_lon, london_lat, london_lon);
         assert!((distance - 5585.0).abs() < 50.0); // Allow 50km tolerance
     }
-    
 }
