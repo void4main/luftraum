@@ -128,10 +128,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                         }
 
                         // Height level
-                        let height_level = read_tmp
-                            .get_latest_known_pos(plane_id.to_string())
-                            .map(|pos| pos.2.to_string())
-                            .unwrap_or("-".to_string());
+                        let height_level = read_tmp.get_latest_known_altitude(plane_id.to_string()).map(|alt| alt.to_string()).unwrap_or("-".to_string());
 
                         // Update statistics
                         if let Some(height_level) = read_tmp

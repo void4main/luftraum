@@ -117,6 +117,14 @@ impl SharedDataDb {
             lat.and_then(|lat| long.and_then(|long| alt.map(|alt| (lat, long, alt))))
         })
     }
+    
+    /// Returns latest known altitude
+    pub fn get_latest_known_altitude(&self, plane_id: String) -> Option<(f32)> {
+        self.plane_db.get(&plane_id).and_then(|p_dataset| {
+            let alt = p_dataset.data_var.altitude.iter().rev().find_map(|alt| *alt);
+            alt
+        })
+    }
 
     pub fn get_call_sign(&self, plane_id: String) -> String {
         self.plane_db

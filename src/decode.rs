@@ -61,6 +61,9 @@ pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String
                 Some(tmp_spi_bool),
                 Some(tmp_is_on_ground_bool),
             );
+        } else {
+            // Dropped messages
+            dbg!(message);
         }
     }
 }
