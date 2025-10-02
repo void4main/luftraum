@@ -119,7 +119,7 @@ impl SharedDataDb {
     }
     
     /// Returns latest known altitude
-    pub fn get_latest_known_altitude(&self, plane_id: String) -> Option<(f32)> {
+    pub fn get_latest_known_altitude(&self, plane_id: String) -> Option<f32> {
         self.plane_db.get(&plane_id).and_then(|p_dataset| {
             let alt = p_dataset.data_var.altitude.iter().rev().find_map(|alt| *alt);
             alt

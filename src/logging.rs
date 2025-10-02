@@ -3,7 +3,7 @@ use std::io::{BufWriter, Write};
 use std::time::SystemTime;
 
 /// Logs all received ADB-S data to a static file.
-pub fn log_messages(message: &str) -> std::io::Result<()> {
+pub fn log_messages(src: &str, message: &str) -> std::io::Result<()> {
     let file = OpenOptions::new()
         .create(true)
         .append(true)
@@ -15,7 +15,7 @@ pub fn log_messages(message: &str) -> std::io::Result<()> {
         .unwrap()
         .as_secs();
 
-    writeln!(writer, "{}, {}", timestamp, message)?;
+    writeln!(writer, "{},{},{}", timestamp, src, message)?;
     writer.flush()?;
 
     Ok(())

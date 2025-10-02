@@ -63,6 +63,7 @@ pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String
             );
         } else {
             // Dropped messages
+            // TODO: Add to statistics for RCA if any
             dbg!(message);
         }
     }

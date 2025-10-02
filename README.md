@@ -8,12 +8,16 @@ Application to show live air traffic in 3D.
 Start `dump1090 --device-type hackrf --net-sbs-port 30003 --quiet` on localhost.
 Luftraum connects to 127.0.0.1:30003 statically by now.
 
-New features :-)
+Features :-)
 * Egui, color coded special squawks, e.g. 1000, 7600, ...
 * Dump all received raw data to file
 * With first GLB plane model
 * Some statistics
 * Flight path (optional)
+
+New features (beta):
+* Load network configuration from TOML file
+* Subscribe data from MTQQ server
 
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.17.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16b.png)
@@ -21,8 +25,11 @@ New features :-)
 ### Hardware
 Indoor setup
 * HackRF One
+
+Outdoor setup
 * RTL-STR Model V3
-* Jetvision A3 antenna (ADS-B 1090MHz)
+* Jetvision A3 antenna (ADS-B 1090MHz, mounted at a height of 3m)
+* Publish data to MQTT broker (via dump1090 and Python script)
 
 ### SRTM data source
 I got my SRTM ASCII data here:

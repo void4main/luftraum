@@ -1,0 +1,14 @@
+# Network
+[[sbs_server]]
+label = "Antenne SBS"
+sbs_hostname = "127.0.0.1"
+sbs_port = 30003 
+
+[[mqtt_broker]]
+label = "Antenne 0"
+mqtt_broker_hostname = "127.0.0.1"
+mqtt_broker_port = 1883
+mqtt_topic = "adbs/#"
+mqtt_user = "luftraum"
+mqtt_password = "luftraum"
+mqtt_keepalive = 100
