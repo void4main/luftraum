@@ -5,8 +5,7 @@ Application to show live air traffic in 3D.
 * Uses SRTM terrain data to show environment
 * and dump1090 to get local ADS-B plane data
  
-Start e.g. `dump1090 --device-type hackrf --net-sbs-port 30003 --quiet` on localhost.
-or subscribe to MQTT topic.
+Start e.g. `dump1090 --device-type hackrf --net-sbs-port 30003 --quiet` on localhost and/or subscribe to MQTT topic.
 
 Features :-)
 * Egui, color coded special squawks, e.g. 1000, 7600, ...
