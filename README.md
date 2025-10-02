@@ -5,8 +5,8 @@ Application to show live air traffic in 3D.
 * Uses SRTM terrain data to show environment
 * and dump1090 to get local ADS-B plane data
  
-Start `dump1090 --device-type hackrf --net-sbs-port 30003 --quiet` on localhost.
-Luftraum connects to 127.0.0.1:30003 statically by now.
+Start e.g. `dump1090 --device-type hackrf --net-sbs-port 30003 --quiet` on localhost.
+or subscribe to MQTT topic.
 
 Features :-)
 * Egui, color coded special squawks, e.g. 1000, 7600, ...
@@ -17,7 +17,7 @@ Features :-)
 
 New features (beta):
 * Load network configuration from TOML file
-* Subscribe data from MTQQ server
+* Subscribe data from MQTT server
 
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.17.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16b.png)
