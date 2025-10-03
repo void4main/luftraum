@@ -16,10 +16,11 @@ jemallocator = "0.5.4"
 
 # Load config files
 serde = "1.0.228"
+toml = "0.9.7"
 
 # bevy = { version = "0.16.1", features = ["meshlet", "meshlet_processor"] }
 bevy = "0.16.1"
-bevy_panorbit_camera = "0.26.0"
+bevy_panorbit_camera = {version = "0.28.0", features = ["bevy_egui"] }
 bevy_egui = "0.36"
 
 # Collect data from MQTT broker
@@ -30,7 +31,6 @@ chrono = "0.4"
 
 # Performance monitoring
 dhat = "0.3.3"
-toml = "0.9.7"
 
 [features]
 dhat-heap = []
