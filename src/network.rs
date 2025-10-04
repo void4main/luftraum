@@ -66,8 +66,7 @@ pub async fn connect_dump1090_sbs(
 /// Connect to MQTT broker to pull ADS-B messages
 pub async fn connect_mqtt(data_share: &Arc<Mutex<SharedDataDb>>, mqtt_broker: MqttBroker
 ) -> Result<(), Box<dyn std::error::Error>> {
-
-    // TODO: Read from file
+    
     let broker = mqtt_broker.mqtt_broker_hostname;
     let port = mqtt_broker.mqtt_broker_port;
     let keepalive = mqtt_broker.mqtt_keepalive; // Seconds

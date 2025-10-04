@@ -10,8 +10,8 @@ divan = "0.1.21"
 name = "benchmarks"
 harness = false
 
-[dependencies]
 # Test for now
+[dependencies]
 jemallocator = "0.5.4"
 
 # Load config files

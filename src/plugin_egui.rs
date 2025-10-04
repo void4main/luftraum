@@ -43,8 +43,6 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
     let plane_list = read_tmp.get_planes_id();
     let number_of_planes = plane_list.len();
 
-    let heading = format!("Planes ({number_of_planes})");
-
     egui::Window::new("Luftraum").show(contexts.ctx_mut().expect("egui-show().error"), |ui| {
         // Settings section
         ui.collapsing("Settings", |ui| {
@@ -92,23 +90,21 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
 
         // TODO: Push statistics calc to different place
         // List all planes
+        let heading = format!("Planes ({number_of_planes})");
         egui::CollapsingHeader::new(heading)
             .default_open(true)
             .show(ui, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
-                egui::Grid::new("some_unique_id").show(ui, |ui| {
-
-                    // Headline
-                    ui.centered_and_justified(|ui| {
-                        ui.label(RichText::new("HEX").strong());
-                    });
-                    let labels = [
-                        "Squawk", "Height", "Vertical", "Speed", "Track", "Call", "DTA",
-                    ];
-                    for label in labels {
-                        ui.label(label);
-                    }
-                    ui.end_row();
+                    egui::Grid::new("some_unique_id").show(ui, |ui| {
+                        // Headline
+                        ui.centered_and_justified(|ui| {
+                            ui.label(RichText::new("ID")); //.strong());
+                        });
+                        let labels = ["Squawk", "Alt", "Vertical", "Speed", "Track", "Call", "DTA"];
+                        for label in labels {
+                            ui.label(label);
+                        }
+                        ui.end_row();
 
                         // List of planes
                         for plane_id in plane_list.clone() {
@@ -234,9 +230,9 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                             // ui.label(on_ground_str);
                             ui.label(dist_to_antenna_str);
                             ui.end_row();
-                        };
-
+                        }
+                    });
                 });
-            });});
+            });
     });
 }

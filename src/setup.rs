@@ -4,6 +4,7 @@ use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
 use crate::math::*;
 use crate::plugin_plane::*;
