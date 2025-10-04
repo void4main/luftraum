@@ -18,8 +18,8 @@ New features (beta):
 * Load network configuration from TOML file
 * Subscribe data from MQTT server
 
-![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.17.png)
-![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.1.16b.png)
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.1.png)
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.2.png)
 
 ### Hardware
 Indoor setup
