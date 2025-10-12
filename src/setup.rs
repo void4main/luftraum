@@ -4,7 +4,6 @@ use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::prelude::*;
 use bevy::render::mesh::VertexAttributeValues;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
 use crate::math::*;
 use crate::plugin_plane::*;
@@ -38,7 +37,7 @@ pub fn setup(
     commands.spawn((
         (
             Camera3d::default(),
-            Transform::from_xyz(0., 1000., 0.).looking_at(Vec3::ZERO, Vec3::Y),
+            Transform::from_xyz(0., 1000., 2000.).looking_at(Vec3::ZERO, Vec3::Y),
         ),
         PanOrbitCamera::default(),
     ));
@@ -136,28 +135,6 @@ pub fn setup(
         Transform::from_xyz(2000.0, 0.0, 0.0),
         Terrain,
     ));
-
-    //
-    // Test
-    //
-
-    // let text_style = TextFont {
-    //     font: asset_server.load("fonts/FiraMono-Medium.ttf"),
-    //     font_size: 20.0,
-    //     ..default()
-    // };
-    // let label_text_style = (text_style.clone(), TextColor(ORANGE.into()));
-    // // Text to describe the controls.
-    // commands.spawn((
-    //     Text::new("┌─ Luftraum \n│\n│\n│\n│"),
-    //     label_text_style.clone(),
-    //     Node {
-    //         position_type: PositionType::Absolute,
-    //         top: Val::Px(12.0),
-    //         left: Val::Px(220.0),
-    //         ..default()
-    //     },
-    // ));
 }
 
 // TODO: Place in plugin_groundstructures or/and load from file

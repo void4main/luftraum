@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use chrono::{NaiveDate, NaiveTime};
-
+use crate::hex_lookup::fetch_aircraft;
 use crate::math::haversine_distance;
+use chrono::{NaiveDate, NaiveTime};
+use std::collections::HashMap;
 
 // All ADS-B data is stored and shared between network and Bevy in here
 pub struct SharedDataDb {
@@ -111,17 +111,37 @@ impl SharedDataDb {
     pub fn get_latest_known_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
         // let last_some = vec.iter().rev().find_map(|x| *x);
         self.plane_db.get(&plane_id).and_then(|p_dataset| {
-            let lat = p_dataset.data_var.latitude.iter().rev().find_map(|lat| *lat);
-            let long = p_dataset.data_var.longitude.iter().rev().find_map(|long| *long);
-            let alt = p_dataset.data_var.altitude.iter().rev().find_map(|alt| *alt);
+            let lat = p_dataset
+                .data_var
+                .latitude
+                .iter()
+                .rev()
+                .find_map(|lat| *lat);
+            let long = p_dataset
+                .data_var
+                .longitude
+                .iter()
+                .rev()
+                .find_map(|long| *long);
+            let alt = p_dataset
+                .data_var
+                .altitude
+                .iter()
+                .rev()
+                .find_map(|alt| *alt);
             lat.and_then(|lat| long.and_then(|long| alt.map(|alt| (lat, long, alt))))
         })
     }
-    
+
     /// Returns latest known altitude
     pub fn get_latest_known_altitude(&self, plane_id: String) -> Option<f32> {
         self.plane_db.get(&plane_id).and_then(|p_dataset| {
-            let alt = p_dataset.data_var.altitude.iter().rev().find_map(|alt| *alt);
+            let alt = p_dataset
+                .data_var
+                .altitude
+                .iter()
+                .rev()
+                .find_map(|alt| *alt);
             alt
         })
     }
@@ -134,11 +154,18 @@ impl SharedDataDb {
     }
 
     pub fn get_vertical_rate(&self, plane_id: String) -> Option<f32> {
-        self.plane_db.get(&plane_id)
-            .and_then(|p_dataset | p_dataset.data_var.vertical_rate.last().cloned()).flatten()
+        self.plane_db
+            .get(&plane_id)
+            .and_then(|p_dataset| p_dataset.data_var.vertical_rate.last().cloned())
+            .flatten()
     }
 
-    pub fn get_plane_distance_to_lat_lon(&self, plane_id: String, lat: f32, lon: f32) -> Option<f32> {
+    pub fn get_plane_distance_to_lat_lon(
+        &self,
+        plane_id: String,
+        lat: f32,
+        lon: f32,
+    ) -> Option<f32> {
         let pos = self.get_latest_known_pos(plane_id);
         if let Some(pos) = pos {
             let distance = haversine_distance(pos.0, pos.1, lat, lon);
@@ -214,6 +241,23 @@ impl SharedDataDb {
                 }
             }
         } else {
+            // New aircraft, fetch additional data
+            let aircraft_hex = hex_ident.clone();
+            println!("Aircraft hex: {}", &aircraft_hex);
+            tokio::spawn(async move {
+                let data = fetch_aircraft(&aircraft_hex).await;
+                match data {
+                    Ok(data) => {
+                        println!("Data output: ");
+                        dbg!(data)
+                    }
+                    _ => {
+                        println!("Data output: Some fetch error.");
+                        None
+                    }
+                }
+            });
+            //
             temp.insert(
                 hex_ident.clone(),
                 PlaneDataSet {

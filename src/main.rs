@@ -23,6 +23,7 @@ mod squawks;
 mod srtm;
 mod terrain;
 mod terrain_color_spectrum;
+mod hex_lookup;
 
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
@@ -36,8 +37,22 @@ struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 
 #[derive(Debug, Deserialize, Clone)]
 struct Configuration {
-    sbs_server: Vec<Option<SbsServer>>,
-    mqtt_broker: Vec<Option<MqttBroker>>,
+    sbs_server: Option<Vec<SbsServer>>,
+    mqtt_broker: Option<Vec<MqttBroker>>,
+    terrain_tile_size: TerrainTileSize,
+    terrain_srtm_file: Vec<TerrainSrtmFile>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct TerrainTileSize {
+    terrain_width: f32,
+    terrain_height: f32,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct TerrainSrtmFile {
+    label: String,
+    srtm_file: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -84,8 +99,8 @@ async fn main() {
     let config = cfg.unwrap();
 
     // Receive ADS-B data from dump1090
-    for sbs_server in config.clone().sbs_server.into_iter() {
-        if let Some(sbs_server) = sbs_server {
+    for sbs_servers in config.clone().sbs_server.into_iter() {
+        for sbs_server in sbs_servers {
             let tokio_plane_data_db_sbs = shared_plane_data_db.clone();
             tokio::spawn(async move {
                 let _ = connect_dump1090_sbs(&tokio_plane_data_db_sbs, sbs_server).await;
@@ -94,8 +109,8 @@ async fn main() {
     }
 
     // Receive ADS-B data from MQTT subscriptions
-    for mqtt_broker in config.mqtt_broker.into_iter() {
-        if let Some(mqtt_broker) = mqtt_broker {
+    for mqtt_brokers in config.mqtt_broker.into_iter() {
+        for mqtt_broker in mqtt_brokers {
             let tokio_plane_data_db_mqtt = shared_plane_data_db.clone();
             tokio::spawn(async move {
                 let _ = connect_mqtt(&tokio_plane_data_db_mqtt, mqtt_broker).await;

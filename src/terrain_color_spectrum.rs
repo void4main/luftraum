@@ -1,5 +1,3 @@
-use bevy::prelude::*;
-
 pub enum ColorSpectrum {
     /// Type of pre-defined color spectrum to color different height-level.
     // TODO: Check accuracy

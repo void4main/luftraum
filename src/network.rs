@@ -44,9 +44,7 @@ pub async fn connect_dump1090_sbs(
                     // Log everything to file by now, message is the raw data set
                     let _ = log_messages("sbs", &message);
                     // Decode message and store it in struct
-                    // println!("Label: {}", sbs_server.label);
                     let _ = decode_message_sbs(data_share, message);
-
                 }
                 Err(e) => {
                     eprintln!("Error reading line. Error: {:?}", e);
