@@ -1,9 +1,11 @@
-use crate::data_share::*;
 use chrono::{NaiveDate, NaiveTime};
 use std::sync::{Arc, Mutex};
 
+use crate::data_share::*;
+
 pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String) {
     if message.len() > 0 && message.len() < 255 && message.is_ascii() { // Basic checks ;-)
+
         // Split message into (22) pieces by definition of SBS messages
         let vec: Vec<&str> = message.split(',').collect();
 
@@ -64,7 +66,7 @@ pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String
         } else {
             // Dropped messages
             // TODO: Add to statistics for RCA if any
-            dbg!(message);
+            dbg!("Warning dropped: {message}");
         }
     }
 }
