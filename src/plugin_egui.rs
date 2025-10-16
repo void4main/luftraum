@@ -4,8 +4,8 @@ use bevy::prelude::*;
 use bevy_egui::egui::{Color32, RichText};
 use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
 
-use crate::ShareStruct;
 use crate::squawks::get_transponder_description;
+use crate::{AIRCRAFT_ADD_DATA, ShareStruct};
 
 #[derive(Default, Resource)]
 pub struct UiState {
@@ -168,6 +168,26 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
 
                             // Call sign
                             let call_sign = read_tmp.get_call_sign(plane_id.to_string());
+                            // Added aircraft data
+                            // TODO: Clean up this mess
+                            let mut added_aircraft_data = "No additional data.".to_string();
+                            let data_store = AIRCRAFT_ADD_DATA.lock();
+                            if let Ok(data_store) = data_store {
+                                let added_aircraft_data_struct =
+                                    data_store.get(&plane_id.to_string());
+                                if let Some(added_aircraft_data_b) = added_aircraft_data_struct {
+                                    added_aircraft_data = format!(
+                                        "Mode S: {}\nManufacturer: {}\nAircraft type: {}\nICAO type: {}\nOperator Flag Code: {}\nRegistration: {}\nOwners: {}",
+                                        added_aircraft_data_b.mode_s,
+                                        added_aircraft_data_b.manufacturer,
+                                        added_aircraft_data_b.aircraft_type,
+                                        added_aircraft_data_b.icao_type_code,
+                                        added_aircraft_data_b.operator_flag_code,
+                                        added_aircraft_data_b.registration,
+                                        added_aircraft_data_b.registered_owners,
+                                    );
+                                }
+                            }
 
                             // Is on ground
                             // let on_ground_str = read_tmp
@@ -226,7 +246,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                             //ui.label(vertical_rate_simple_str);
                             ui.label(ground_speed);
                             ui.label(track);
-                            ui.label(call_sign);
+                            ui.label(call_sign).on_hover_text(added_aircraft_data);
                             // ui.label(on_ground_str);
                             ui.label(dist_to_antenna_str);
                             ui.end_row();

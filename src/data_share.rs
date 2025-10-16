@@ -2,6 +2,8 @@ use crate::hex_lookup::fetch_aircraft;
 use crate::math::haversine_distance;
 use chrono::{NaiveDate, NaiveTime};
 use std::collections::HashMap;
+use bevy::asset::AssetContainer;
+use super::AIRCRAFT_ADD_DATA;
 
 // All ADS-B data is stored and shared between network and Bevy in here
 pub struct SharedDataDb {
@@ -242,21 +244,27 @@ impl SharedDataDb {
             }
         } else {
             // New aircraft, fetch additional data
+
             let aircraft_hex = hex_ident.clone();
             println!("Aircraft hex: {}", &aircraft_hex);
+
             tokio::spawn(async move {
                 let data = fetch_aircraft(&aircraft_hex).await;
-                match data {
-                    Ok(data) => {
-                        println!("Data output: ");
-                        dbg!(data)
-                    }
-                    _ => {
-                        println!("Data output: Some fetch error.");
-                        None
+                if let Ok(Some(aircraft)) = data {
+                    // This block runs only when we have a concrete Aircraft value.
+                    let data_store = AIRCRAFT_ADD_DATA.lock();
+                    if let Ok(mut data_store) = data_store {
+                        data_store.insert(aircraft_hex, aircraft);
                     }
                 }
             });
+
+            let data_store = AIRCRAFT_ADD_DATA.lock();
+            if let Ok(data_store) = data_store {
+                dbg!(data_store.keys());
+            }
+
+
             //
             temp.insert(
                 hex_ident.clone(),

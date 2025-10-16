@@ -13,11 +13,9 @@ Features :-)
 * With first GLB plane model
 * Some statistics
 * Flight path (optional)
-
-New features (beta):
 * Load network configuration from TOML file
 * Subscribe data from MQTT server
-* Get additional aircraft data from hexdb.io
+* Get additional aircraft data from hexdb.io (-> mouse hover over call sign label)
 
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.1.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.2.png)

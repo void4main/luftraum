@@ -1,10 +1,13 @@
 use bevy::prelude::*;
 use serde::Deserialize;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::{error::Error, fs};
+use std::collections::HashMap;
+use once_cell::sync::Lazy;
 
 extern crate jemallocator;
 use crate::data_share::SharedDataDb;
+use crate::hex_lookup::Aircraft;
 use crate::network::*;
 
 mod data_share;
@@ -25,8 +28,8 @@ mod terrain;
 mod terrain_color_spectrum;
 mod hex_lookup;
 
-#[global_allocator]
-static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
+// #[global_allocator]
+// static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -82,6 +85,11 @@ pub struct MqttBroker {
     pub mqtt_keepalive: u64,
 }
 
+// Store additional aircraft data in here
+// Hexdb.io -> kv (file cache) -> AIRCRAFT_ADD_DATA
+static AIRCRAFT_ADD_DATA: Lazy<Mutex<HashMap<String, Aircraft>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
 #[tokio::main]
 async fn main() {
     #[cfg(feature = "dhat-heap")]
@@ -89,14 +97,17 @@ async fn main() {
 
     // Load configuration from file
     let cfg = load_configuration("luftraum_config.toml");
-    dbg!(&cfg);
+    // No, no, no, no, TODO()
+    let config = cfg.unwrap();
 
     // Create struct to store all plane data and share it between the network and bevy tasks.
     let plane_data_db = SharedDataDb::new();
     let shared_plane_data_db = Arc::new(Mutex::new(plane_data_db));
     let bevy_plane_data_db = shared_plane_data_db.clone();
 
-    let config = cfg.unwrap();
+    // Create struct to store additional data
+    let aircraft_additional_data: HashMap<&str, Aircraft> = HashMap::new();
+    let shared_aircraft_additional_data = Arc::new(Mutex::new(aircraft_additional_data));
 
     // Receive ADS-B data from dump1090
     for sbs_servers in config.clone().sbs_server.into_iter() {
