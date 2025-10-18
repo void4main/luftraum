@@ -1,6 +1,5 @@
 use kv::*;
 
-// Hexdb.io data to struct
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct Aircraft {
     #[serde(rename = "ModeS")]
@@ -19,6 +18,7 @@ pub struct Aircraft {
     pub operator_flag_code: String,
 }
 
+/// Fetch additional aircraft data either from kv-database or hexdb.io
 pub async fn fetch_aircraft(hex_code: &str) -> Result<Option<Aircraft>, reqwest::Error> {
     // Is aircraft data already cached?
     // Errors are ignored, show must go on :-)
@@ -41,6 +41,7 @@ pub async fn fetch_aircraft(hex_code: &str) -> Result<Option<Aircraft>, reqwest:
     }
 }
 
+/// Fetch additional aircraft data and store it in pre-defined kv-database
 async fn fetch_aircraft_data_from_hexdbio(
     hex_code: &str,
 ) -> Result<Option<Aircraft>, reqwest::Error> {
@@ -52,10 +53,10 @@ async fn fetch_aircraft_data_from_hexdbio(
         return Ok(None);
     }
 
+    // Create struct from data and store it in kv db
     let result = parse_aircraft_struct(&body);
     match result {
         Ok(aircraft_struct) => {
-            // dbg!(&aircraft_struct);
             let _ = store_data(&hex_code, aircraft_struct.clone()).await;
             Ok(Some(aircraft_struct))
         }
@@ -66,11 +67,13 @@ async fn fetch_aircraft_data_from_hexdbio(
     }
 }
 
+/// Create struct from json-data
 fn parse_aircraft_struct(json: &str) -> Result<Aircraft, serde_json::Error> {
     let val: Aircraft = serde_json::from_str(json)?;
     Ok(val)
 }
 
+/// Store additional aircraft data in pre-defined kv-database
 async fn store_data(key: &str, value: Aircraft) -> Result<(), Error> {
     let cfg = Config::new("./aircraft.db");
     let store = Store::new(cfg)?;
@@ -87,11 +90,11 @@ async fn store_data(key: &str, value: Aircraft) -> Result<(), Error> {
     }
 }
 
+/// Check if aircraft is in cache and return data
 async fn get_aircraft_data_from_cache(key: &str) -> Result<Option<Aircraft>, Error> {
     let cfg = Config::new("./aircraft.db");
     let store = Store::new(cfg)?;
     let bucket = store.bucket::<String, Json<Aircraft>>(None)?;
-
     let key = key.to_string();
     let result = bucket.get(&key);
     match result {
@@ -113,16 +116,15 @@ async fn get_aircraft_data_from_cache(key: &str) -> Result<Option<Aircraft>, Err
     }
 }
 
-// Dump all the cache data to STD-OUT
+/// Dump all cached kv data to STDOUT
 pub fn dump_aircraft_data_from_cache() -> Result<(), Error> {
     let cfg = Config::new("./aircraft.db");
     let store = Store::new(cfg)?;
     let bucket = store.bucket::<String, Json<Aircraft>>(None)?;
     for item in bucket.iter() {
         let item = item?;
-        let key: String = item.key()?;
+        // let key: String = item.key()?;
         let value: Json<Aircraft> = item.value()?;
-
         println!("{:?}", value.0);
     }
     Ok(())
