@@ -100,7 +100,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                         ui.centered_and_justified(|ui| {
                             ui.label(RichText::new("ID")); //.strong());
                         });
-                        let labels = ["Squawk", "Alt", "Vertical", "Speed", "Track", "Call", "DTA"];
+                        let labels = ["Squawk", "Altitude", "Vertical", "Speed", "Track", "Call", "DTA"];
                         for label in labels {
                             ui.label(label);
                         }
@@ -167,7 +167,8 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                                 .unwrap_or("-".to_string());
 
                             // Call sign
-                            let call_sign = read_tmp.get_call_sign(plane_id.to_string());
+                            let call_sign = read_tmp.get_call_sign(plane_id.to_string()).filter(|s| !s.is_empty()).unwrap_or("-".to_string());
+
                             // Added aircraft data
                             // TODO: Clean up this mess
                             let mut added_aircraft_data = "No additional data.".to_string();

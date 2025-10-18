@@ -147,11 +147,10 @@ impl SharedDataDb {
         })
     }
 
-    pub fn get_call_sign(&self, plane_id: String) -> String {
+    pub fn get_call_sign(&self, plane_id: String) -> Option<String> {
         self.plane_db
             .get(&plane_id)
             .and_then(|p_dataset| p_dataset.data_const.call_sign.clone())
-            .unwrap_or("-".to_string())
     }
 
     pub fn get_vertical_rate(&self, plane_id: String) -> Option<f32> {
