@@ -112,3 +112,18 @@ async fn get_aircraft_data_from_cache(key: &str) -> Result<Option<Aircraft>, Err
         }
     }
 }
+
+// Dump all the cache data to STD-OUT
+pub fn dump_aircraft_data_from_cache() -> Result<(), Error> {
+    let cfg = Config::new("./aircraft.db");
+    let store = Store::new(cfg)?;
+    let bucket = store.bucket::<String, Json<Aircraft>>(None)?;
+    for item in bucket.iter() {
+        let item = item?;
+        let key: String = item.key()?;
+        let value: Json<Aircraft> = item.value()?;
+
+        println!("{:?}", value.0);
+    }
+    Ok(())
+}
