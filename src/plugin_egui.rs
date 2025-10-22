@@ -14,7 +14,7 @@ pub struct UiState {
     pub pos_ground_projection: bool,
     pub pos_ground_arrow: bool,
     pub fx_sound: bool,
-    // TODO: Move statistics calculations
+    // Statistics
     pub max_distance_to_antenna: f32,
     pub min_vertical_rate: f32,
     pub max_vertical_rate: f32,
@@ -22,7 +22,7 @@ pub struct UiState {
     pub max_height_level: f32,
     pub min_speed: Option<f32>,
     pub max_speed: f32,
-    // Checkboxes
+    // Checkbox for every active plane
     pub plane_checkbox: HashMap<String, bool>,
 }
 
@@ -64,21 +64,21 @@ fn ui_system(
 
         // Statistics section
         ui.collapsing("Statistics", |ui| {
-            let max_dist = ui_state.max_distance_to_antenna;
-            let max_dist_label = format!("Max. distance to antenna: {:.1} km", max_dist);
-            let min_vertical_rate = ui_state.min_vertical_rate;
+            let max_dist_label =
+                format!("Max. distance to antenna: {:.1} km", ui_state.max_distance_to_antenna);
             let min_vertical_rate_label =
-                format!("Min. vertical rate: {:.1} fpm", min_vertical_rate);
-            let max_vertical_rate = ui_state.max_vertical_rate;
+                format!("Min. vertical rate: {:.1} fpm", ui_state.min_vertical_rate);
             let max_vertical_rate_label =
-                format!("Max. vertical rate: {:.1} fpm", max_vertical_rate);
-            let planes_seen = ui_state.plane_ids.len();
-            let planes_seen_label = format!("Planes seen: {}", planes_seen);
+                format!("Max. vertical rate: {:.1} fpm", ui_state.max_vertical_rate);
+            let planes_seen_label =
+                format!("Planes seen: {}", ui_state.plane_ids.len());
             let min_speed_for_label = ui_state
                 .min_speed
                 .map_or("-".to_string(), |speed| speed.to_string());
-            let min_speed_label = format!("Min. speed: {:.1} kt", min_speed_for_label);
-            let max_speed_label = format!("Max. speed: {:.1} kt", ui_state.max_speed);
+            let min_speed_label =
+                format!("Min. speed: {:.1} kt", min_speed_for_label);
+            let max_speed_label =
+                format!("Max. speed: {:.1} kt", ui_state.max_speed);
             let min_height_level_for_label = ui_state
                 .min_height_level
                 .map_or("-".to_string(), |v| v.to_string());
@@ -97,7 +97,6 @@ fn ui_system(
             ui.label(max_height_level_label);
         });
 
-        // TODO: Push statistics calc to different place
         // List all planes
         let heading = format!("Planes ({number_of_planes})");
         egui::CollapsingHeader::new(heading)
@@ -107,7 +106,7 @@ fn ui_system(
                     egui::Grid::new("some_unique_id").show(ui, |ui| {
                         // Headline
                         ui.centered_and_justified(|ui| {
-                            ui.label(RichText::new("ID")); //.strong());
+                            ui.label(RichText::new("HEX")); //.strong());
                         });
                         let labels = ["Squawk", "Altitude", "Vertical", "Speed", "Track", "Call", "DTA"];
                         for label in labels {
@@ -120,7 +119,7 @@ fn ui_system(
                             // Statistics
                             ui_state.plane_ids.insert(plane_id.to_string());
 
-                            // Squawk
+                            // Squawk, description and play sound
                             let squawk;
                             let mut squawk_str = "-".to_string();
                             let mut squawk_description = "-".to_string();
@@ -130,8 +129,9 @@ fn ui_system(
                                 if let Some(squawk) = get_transponder_description(squawk) {
                                     color = squawk.1.to_color32();
                                     squawk_description = squawk.0.to_string();
+
                                     // Check if already triggered lately
-                                    if ui_state.fx_sound && cooldown.timer.finished(){
+                                    if ui_state.fx_sound && cooldown.timer.finished() {
                                         event_writer.write(PlaySoundEvent {
                                             sound_type: SoundType::Attention,
                                         });
@@ -185,26 +185,30 @@ fn ui_system(
                                 .unwrap_or("-".to_string());
 
                             // Call sign
-                            let call_sign = read_tmp.get_call_sign(plane_id.to_string()).filter(|s| !s.is_empty()).unwrap_or("-".to_string());
+                            let call_sign = read_tmp.get_call_sign(plane_id.to_string())
+                                .filter(|s| !s.is_empty()).unwrap_or("-".to_string());
 
                             // Added aircraft data
-                            // TODO: Clean up this mess
                             let mut added_aircraft_data = "No additional data.".to_string();
                             let data_store = AIRCRAFT_ADD_DATA.lock();
+
                             if let Ok(data_store) = data_store {
                                 let added_aircraft_data_struct =
                                     data_store.get(&plane_id.to_string());
-                                if let Some(added_aircraft_data_b) = added_aircraft_data_struct {
+
+                                // Map struct data to string
+                                if let Some(added_aircraft_data_tmp) = added_aircraft_data_struct {
                                     added_aircraft_data = format!(
                                         "Mode S: {}\nManufacturer: {}\nAircraft type: {}\nICAO type: {}\nOperator Flag Code: {}\nRegistration: {}\nOwners: {}",
-                                        added_aircraft_data_b.mode_s,
-                                        added_aircraft_data_b.manufacturer,
-                                        added_aircraft_data_b.aircraft_type,
-                                        added_aircraft_data_b.icao_type_code,
-                                        added_aircraft_data_b.operator_flag_code,
-                                        added_aircraft_data_b.registration,
-                                        added_aircraft_data_b.registered_owners,
+                                        added_aircraft_data_tmp.mode_s,
+                                        added_aircraft_data_tmp.manufacturer,
+                                        added_aircraft_data_tmp.aircraft_type,
+                                        added_aircraft_data_tmp.icao_type_code,
+                                        added_aircraft_data_tmp.operator_flag_code,
+                                        added_aircraft_data_tmp.registration,
+                                        added_aircraft_data_tmp.registered_owners,
                                     );
+
                                 }
                             }
 
@@ -256,7 +260,7 @@ fn ui_system(
                             // Build row
                             ui.checkbox(
                                 checkbox_value,
-                                RichText::new(plane_id.to_string()).color(Color32::LIGHT_RED),
+                                RichText::new(plane_id.to_string()).color(Color32::LIGHT_GRAY),
                             );
                             //ui.label(plane_id);
                             ui.label(RichText::new(squawk_str).color(color)).on_hover_text(squawk_description);
