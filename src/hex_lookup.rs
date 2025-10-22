@@ -117,7 +117,7 @@ async fn get_aircraft_data_from_cache(key: &str) -> Result<Option<Aircraft>, Err
 }
 
 /// Dump all cached kv data to STDOUT
-pub fn _dump_aircraft_data_from_cache() -> Result<(), Error> {
+pub fn dump_aircraft_data_from_cache() -> Result<(), Error> {
     let cfg = Config::new("./aircraft.db");
     let store = Store::new(cfg)?;
     let bucket = store.bucket::<String, Json<Aircraft>>(None)?;

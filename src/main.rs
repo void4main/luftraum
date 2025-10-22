@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{error::Error, fs, process};
 
-extern crate jemallocator;
+//extern crate jemallocator;
 use crate::data_share::SharedDataDb;
 use crate::hex_lookup::*;
 use crate::network::*;
@@ -27,6 +27,7 @@ mod squawks;
 mod srtm;
 mod terrain;
 mod terrain_color_spectrum;
+mod plugin_sound;
 
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
@@ -85,6 +86,11 @@ static AIRCRAFT_ADD_DATA: Lazy<Mutex<HashMap<String, Aircraft>>> =
 
 #[tokio::main]
 async fn main() {
+    //
+    //dump_aircraft_data_from_cache();
+    //panic!();
+    //
+
     // Load configuration from file
     let cfg = load_configuration("luftraum_config.toml");
     let config = cfg.unwrap_or_else(|err| {
@@ -133,16 +139,17 @@ async fn main() {
             ..default()
         }))
         .insert_resource(ShareStruct(bevy_plane_data_db))
-        .add_plugins(plugin_egui::plugin) // egui
-        .add_plugins(setup::plugin) // camera, basic landscape, support gizmos
-        .add_plugins(plugin_plane::plugin) // plane related, setup, updates
-        // .add_plugins(plugin_airspace::plugin)   // static airspace structures
+        .add_plugins(plugin_egui::plugin)       // egui
+        .add_plugins(setup::plugin)             // camera, basic landscape, support gizmos
+        .add_plugins(plugin_plane::plugin)      // plane related, setup, updates
+        .add_plugins(plugin_sound::plugin)      //
+        // .add_plugins(plugin_airspace::plugin)          // static airspace structures, e.g. no flight zones
+        // .add_plugins(plugin_groundstructures::plugin)  // structures on ground
         .run();
 }
 
 fn load_configuration(path: &str) -> Result<Configuration, Box<dyn Error>> {
     let raw = fs::read_to_string(path)?;
     let cfg: Configuration = toml::from_str(&raw)?;
-
     Ok(cfg)
 }

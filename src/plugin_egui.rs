@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy_egui::egui::{Color32, RichText};
 use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
 
+use crate::plugin_sound::*;
 use crate::squawks::get_transponder_description;
 use crate::{AIRCRAFT_ADD_DATA, ShareStruct};
 
@@ -12,6 +13,7 @@ pub struct UiState {
     pub plane_ids: HashSet<String>,
     pub pos_ground_projection: bool,
     pub pos_ground_arrow: bool,
+    pub fx_sound: bool,
     // TODO: Move statistics calculations
     pub max_distance_to_antenna: f32,
     pub min_vertical_rate: f32,
@@ -38,7 +40,13 @@ pub fn plugin(app: &mut App) {
         .add_systems(EguiPrimaryContextPass, ui_system);
 }
 
-fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: ResMut<UiState>) {
+fn ui_system(
+    mut contexts: EguiContexts,
+    read: Res<ShareStruct>,
+    mut ui_state: ResMut<UiState>,
+    cooldown: Res<SoundCooldown>,
+    mut event_writer: EventWriter<PlaySoundEvent>,
+) {
     let read_tmp = read.0.lock().unwrap();
     let plane_list = read_tmp.get_planes_id();
     let number_of_planes = plane_list.len();
@@ -51,6 +59,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                 "Project position to ground",
             );
             ui.checkbox(&mut ui_state.pos_ground_arrow, "Arrow position to ground");
+            ui.checkbox(&mut ui_state.fx_sound, "Info sounds");
         });
 
         // Statistics section
@@ -114,11 +123,20 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                             // Squawk
                             let squawk;
                             let mut squawk_str = "-".to_string();
+                            let mut squawk_description = "-".to_string();
                             let mut color = Color32::GRAY;
                             if let Some(squawk_tmp) = read_tmp.get_squawk(plane_id.to_string()) {
                                 squawk = squawk_tmp;
                                 if let Some(squawk) = get_transponder_description(squawk) {
                                     color = squawk.1.to_color32();
+                                    squawk_description = squawk.0.to_string();
+                                    // Check if already triggered lately
+                                    if ui_state.fx_sound && cooldown.timer.finished(){
+                                        event_writer.write(PlaySoundEvent {
+                                            sound_type: SoundType::Attention,
+                                        });
+                                    }
+
                                 }
                                 squawk_str = squawk_tmp.to_string();
                             }
@@ -241,7 +259,7 @@ fn ui_system(mut contexts: EguiContexts, read: Res<ShareStruct>, mut ui_state: R
                                 RichText::new(plane_id.to_string()).color(Color32::LIGHT_RED),
                             );
                             //ui.label(plane_id);
-                            ui.label(RichText::new(squawk_str).color(color));
+                            ui.label(RichText::new(squawk_str).color(color)).on_hover_text(squawk_description);
                             ui.label(height_level);
                             ui.label(vertical_rate_str);
                             //ui.label(vertical_rate_simple_str);

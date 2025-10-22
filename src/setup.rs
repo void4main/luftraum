@@ -7,6 +7,7 @@ use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 use crate::math::*;
 use crate::plugin_plane::*;
+use crate::plugin_sound::{PlaySoundEvent, SoundType};
 use crate::srtm::*;
 use crate::terrain_color_spectrum::*;
 
@@ -26,12 +27,19 @@ pub fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut event_writer: EventWriter<PlaySoundEvent>,
+    asset_server: Res<AssetServer>,
 ) {
     // Light
     commands.spawn((
         DirectionalLight::default(),
         Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
     ));
+
+    // Sound check
+    // event_writer.write(PlaySoundEvent {
+    //     sound_type: SoundType::Attention,
+    // });
 
     // Camera
     commands.spawn((
