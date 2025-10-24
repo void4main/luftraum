@@ -71,7 +71,7 @@ fn ui_system(
             let max_vertical_rate_label =
                 format!("Max. vertical rate: {:.1} fpm", ui_state.max_vertical_rate);
             let planes_seen_label =
-                format!("Planes seen: {}", ui_state.plane_ids.len());
+                format!("Aircraft seen: {}", ui_state.plane_ids.len());
             let min_speed_for_label = ui_state
                 .min_speed
                 .map_or("-".to_string(), |speed| speed.to_string());
@@ -98,7 +98,7 @@ fn ui_system(
         });
 
         // List all planes
-        let heading = format!("Planes ({number_of_planes})");
+        let heading = format!("Aircraft ({number_of_planes})");
         egui::CollapsingHeader::new(heading)
             .default_open(true)
             .show(ui, |ui| {
@@ -108,7 +108,7 @@ fn ui_system(
                         ui.centered_and_justified(|ui| {
                             ui.label(RichText::new("HEX")); //.strong());
                         });
-                        let labels = ["Squawk", "Altitude", "Vertical", "Speed", "Track", "Call", "DTA"];
+                        let labels = ["Squawk", "Altitude", "Vertical", "Speed", "Track", "Call", "Ground", "DTA"];
                         for label in labels {
                             ui.label(label);
                         }
@@ -167,6 +167,7 @@ fn ui_system(
                                 .map(|speed| speed.to_string())
                                 .unwrap_or("-".to_string());
 
+                            // Speed over ground statics
                             if let Some(ground_speed) =
                                 read_tmp.get_ground_speed(plane_id.to_string())
                             {
@@ -213,11 +214,11 @@ fn ui_system(
                             }
 
                             // Is on ground
-                            // let on_ground_str = read_tmp
-                            //     .is_on_ground(plane_id.to_string())
-                            //     .filter(|&is_on_ground| is_on_ground)
-                            //     .map(|_| "on ground".to_string())
-                            //     .unwrap_or("-".to_string());
+                            let on_ground_str = read_tmp
+                                .is_on_ground(plane_id.to_string())
+                                .filter(|&is_on_ground| is_on_ground)
+                                .map(|_| "on ground".to_string())
+                                .unwrap_or("-".to_string());
 
                             // Vertical rate
                             let vertical_rate = read_tmp.get_vertical_rate(plane_id.to_string());
@@ -262,7 +263,6 @@ fn ui_system(
                                 checkbox_value,
                                 RichText::new(plane_id.to_string()).color(Color32::LIGHT_GRAY),
                             );
-                            //ui.label(plane_id);
                             ui.label(RichText::new(squawk_str).color(color)).on_hover_text(squawk_description);
                             ui.label(height_level);
                             ui.label(vertical_rate_str);
@@ -270,7 +270,7 @@ fn ui_system(
                             ui.label(ground_speed);
                             ui.label(track);
                             ui.label(call_sign).on_hover_text(added_aircraft_data);
-                            // ui.label(on_ground_str);
+                            ui.label(on_ground_str);
                             ui.label(dist_to_antenna_str);
                             ui.end_row();
                         }

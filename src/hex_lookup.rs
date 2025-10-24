@@ -18,7 +18,7 @@ pub struct Aircraft {
     pub operator_flag_code: String,
 }
 
-/// Fetch additional aircraft data either from kv-database or hexdb.io
+/// Fetch additional aircraft data 1st from kv-database then hexdb.io
 pub async fn fetch_aircraft(hex_code: &str) -> Result<Option<Aircraft>, reqwest::Error> {
     // Is aircraft data already cached?
     // Errors are ignored, show must go on :-)
@@ -128,4 +128,12 @@ pub fn dump_aircraft_data_from_cache() -> Result<(), Error> {
         println!("{:?}", value.0);
     }
     Ok(())
+}
+
+pub fn get_cache_len() -> Result<usize, Error> {
+    let cfg = Config::new("./aircraft.db");
+    let store = Store::new(cfg)?;
+    let bucket = store.bucket::<String, Json<Aircraft>>(None)?;
+    let len = bucket.iter().count();
+    Ok(len)
 }

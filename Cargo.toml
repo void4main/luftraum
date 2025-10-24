@@ -13,9 +13,8 @@ edition = "2024"
 # Performance monitoring
 #dhat = "0.3.3"
 
-
 [dependencies]
-#jemallocator = "0.5.4"
+jemallocator = "0.5.4"
 
 tokio = { version = "1.47.1", features = ["full"] }
 chrono = "0.4"

@@ -5,10 +5,13 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{error::Error, fs, process};
 
-//extern crate jemallocator;
 use crate::data_share::SharedDataDb;
 use crate::hex_lookup::*;
 use crate::network::*;
+
+use jemallocator::Jemalloc;
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
 
 mod data_share;
 mod decode;
@@ -87,7 +90,7 @@ static AIRCRAFT_ADD_DATA: Lazy<Mutex<HashMap<String, Aircraft>>> =
 #[tokio::main]
 async fn main() {
     //
-    //dump_aircraft_data_from_cache();
+    dump_aircraft_data_from_cache();
     //panic!();
     //
 
