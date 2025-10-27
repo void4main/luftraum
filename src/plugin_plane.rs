@@ -132,7 +132,8 @@ pub fn create_planes(
                         asset_server
                             .load(GltfAssetLabel::Scene(0).from_asset("planes/plane-b.glb")),
                     ),
-                    Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(0.2)),
+                    // TODO: Scale planes according to zoom level and other
+                    Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(1.5)),
                 ))
                 .with_children(|parent| {
                     child_entities.first_child = parent
@@ -256,8 +257,8 @@ pub fn show_tracks(
     for mut plane_id in query.iter_mut() {
         // Spawn track if plane is selected in egui and has not been built
         if plane_id.1.pos.len() >= 4 {
-        if *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id == None {
-            // Build mesh only if useful
+            if *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id == None {
+                // Build mesh only if useful
 
                 let all_pos = plane_id.1.pos.clone();
                 let mesh = plane_track_mesh(all_pos.clone());

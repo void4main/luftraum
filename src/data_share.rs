@@ -1,8 +1,9 @@
-use crate::hex_lookup::fetch_aircraft;
+use crate::hex_lookup::{fetch_aircraft, Aircraft};
 use crate::math::haversine_distance;
 use chrono::{NaiveDate, NaiveTime};
 use std::collections::HashMap;
-use super::AIRCRAFT_ADD_DATA;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
 
 // All ADS-B data is stored and shared between network and Bevy in here
 pub struct SharedDataDb {
@@ -291,3 +292,8 @@ impl SharedDataDb {
         }
     }
 }
+
+// Store additional aircraft data in here
+// Hexdb.io -> kv (file cache) -> AIRCRAFT_ADD_DATA
+pub static AIRCRAFT_ADD_DATA: Lazy<Mutex<HashMap<String, Aircraft>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));

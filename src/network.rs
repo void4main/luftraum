@@ -2,12 +2,40 @@ use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::time::{Duration, sleep};
-use rumqttc::{Event, Incoming, MqttOptions, AsyncClient, QoS};   // MQTT client
+use rumqttc::{Event, Incoming, MqttOptions, AsyncClient, QoS};
+use serde::Deserialize;
 
-use super::{MqttBroker, SbsServer};
 use crate::data_share::*;
 use crate::decode::decode_message_sbs;
 use crate::logging::log_messages;
+
+// MQTT client
+#[derive(Debug, Deserialize, Clone)]
+pub struct MqttBroker {
+    pub label: String,
+    pub mqtt_broker_hostname: String,
+    pub mqtt_broker_port: u16,
+    pub mqtt_topic: String,
+    pub mqtt_user: String,
+    pub mqtt_password: String,
+    pub mqtt_keepalive: u64,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct SbsServer {
+    pub label: String,
+    pub sbs_hostname: String,
+    pub sbs_port: u32,
+}
+
+impl SbsServer {
+    fn validate(&self) -> bevy::prelude::Result<(), &'static str> {
+        if self.sbs_port <= 1024 || self.sbs_port > 65535 {
+            return Err("Configuration: Port out of range (1025-65535)");
+        }
+        Ok(())
+    }
+}
 
 pub async fn connect_dump1090_sbs(
     data_share: &Arc<Mutex<SharedDataDb>>, sbs_server: SbsServer,

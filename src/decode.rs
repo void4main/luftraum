@@ -1,7 +1,11 @@
+use std::collections::HashMap;
 use chrono::{NaiveDate, NaiveTime};
 use std::sync::{Arc, Mutex};
-
+use once_cell::sync::Lazy;
 use crate::data_share::*;
+use crate::hex_lookup::Aircraft;
+
+
 
 pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String) {
     if message.len() > 0 && message.len() < 255 && message.is_ascii() { // Basic checks ;-)

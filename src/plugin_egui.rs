@@ -1,3 +1,4 @@
+use crate::ShareStruct;
 use std::collections::{HashMap, HashSet};
 
 use bevy::prelude::*;
@@ -6,14 +7,14 @@ use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
 
 use crate::plugin_sound::*;
 use crate::squawks::get_transponder_description;
-use crate::{AIRCRAFT_ADD_DATA, ShareStruct};
+use crate::data_share::*;
 
 #[derive(Default, Resource)]
 pub struct UiState {
     pub plane_ids: HashSet<String>,
     pub pos_ground_projection: bool,
     pub pos_ground_arrow: bool,
-    pub fx_sound: bool,
+    pub notification_sound: bool,
     // Statistics
     pub max_distance_to_antenna: f32,
     pub min_vertical_rate: f32,
@@ -59,7 +60,7 @@ fn ui_system(
                 "Project position to ground",
             );
             ui.checkbox(&mut ui_state.pos_ground_arrow, "Arrow position to ground");
-            ui.checkbox(&mut ui_state.fx_sound, "Info sounds");
+            ui.checkbox(&mut ui_state.notification_sound, "Notification sounds");
         });
 
         // Statistics section
@@ -130,8 +131,8 @@ fn ui_system(
                                     color = squawk.1.to_color32();
                                     squawk_description = squawk.0.to_string();
 
-                                    // Check if already triggered lately
-                                    if ui_state.fx_sound && cooldown.timer.finished() {
+                                    // Check sound notification is turned on and if already triggered lately
+                                    if ui_state.notification_sound && cooldown.timer.finished() {
                                         event_writer.write(PlaySoundEvent {
                                             sound_type: SoundType::Attention,
                                         });

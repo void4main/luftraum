@@ -1,12 +1,12 @@
 use chrono::{NaiveDate, NaiveTime}; // For date and time handling
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct SbsMessage {
     message_type: String,        // Message type (e.g., "MSG")
     transmission_type: u8,       // Transmission type (e.g., 1, 2, 3, etc.)
     session_id: Option<String>,  // Session ID (optional, often empty)
     aircraft_id: Option<String>, // Aircraft ID (optional, often empty)
-    hex_ident: String,           // ICAO 24-bit address in hexadecimal, unique identifier 
+    hex_ident: String,           // ICAO 24-bit address in hexadecimal, unique identifier
     flight_id: Option<String>,   // Flight ID (optional, often empty)
     generated_date: NaiveDate,   // Date the message was generated (UTC)
     generated_time: NaiveTime,   // Time the message was generated (UTC)
@@ -52,28 +52,7 @@ impl SbsMessage {
         is_on_ground: Option<bool>,
     ) -> SbsMessage {
         SbsMessage {
-            message_type,
-            transmission_type,
-            session_id,
-            aircraft_id,
-            hex_ident,
-            flight_id,
-            generated_date,
-            generated_time,
-            logged_date,
-            logged_time,
-            call_sign,
-            altitude,
-            ground_speed,
-            track,
-            latitude,
-            longitude,
-            vertical_rate,
-            squawk,
-            alert,
-            emergency,
-            spi,
-            is_on_ground,
+            ..Default::default()
         }
     }
 }

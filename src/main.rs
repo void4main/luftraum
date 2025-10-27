@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -8,8 +7,10 @@ use std::{error::Error, fs, process};
 use crate::data_share::SharedDataDb;
 use crate::hex_lookup::*;
 use crate::network::*;
+use crate::terrain::*;
 
 use jemallocator::Jemalloc;
+
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
@@ -22,9 +23,9 @@ mod network;
 mod plugin_airspace;
 mod plugin_antenna;
 mod plugin_egui;
-mod plugin_groundstructures;
+mod plugin_ground_structures;
 mod plugin_plane;
-mod sbs;
+//mod sbs;
 mod setup;
 mod squawks;
 mod srtm;
@@ -43,57 +44,8 @@ struct Configuration {
     terrain_srtm_file: Vec<TerrainSrtmFile>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct TerrainTileSize {
-    terrain_width: f32,
-    terrain_height: f32,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct TerrainSrtmFile {
-    label: String,
-    srtm_file: String,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct SbsServer {
-    pub label: String,
-    pub sbs_hostname: String,
-    pub sbs_port: u16,
-}
-
-impl SbsServer {
-    fn validate(&self) -> Result<(), &'static str> {
-        if self.sbs_port == 0 || self.sbs_port > 65535 {
-            return Err("Configuration: Port out of range (1-65535)");
-        }
-        Ok(())
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct MqttBroker {
-    pub label: String,
-    pub mqtt_broker_hostname: String,
-    pub mqtt_broker_port: u16,
-    pub mqtt_topic: String,
-    pub mqtt_user: String,
-    pub mqtt_password: String,
-    pub mqtt_keepalive: u64,
-}
-
-// Store additional aircraft data in here
-// Hexdb.io -> kv (file cache) -> AIRCRAFT_ADD_DATA
-static AIRCRAFT_ADD_DATA: Lazy<Mutex<HashMap<String, Aircraft>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
-
 #[tokio::main]
 async fn main() {
-    //
-    dump_aircraft_data_from_cache();
-    //panic!();
-    //
-
     // Load configuration from file
     let cfg = load_configuration("luftraum_config.toml");
     let config = cfg.unwrap_or_else(|err| {
@@ -101,12 +53,12 @@ async fn main() {
         process::exit(1);
     });
 
-    // Create struct to store all plane data and share it between the network and bevy tasks.
+    // Create struct to store all aircraft data and share it between the network and bevy tasks.
     let plane_data_db = SharedDataDb::new();
     let shared_plane_data_db = Arc::new(Mutex::new(plane_data_db));
     let bevy_plane_data_db = shared_plane_data_db.clone();
 
-    // Create struct to store additional data
+    // Create struct to store additional aircraft data
     let aircraft_additional_data: HashMap<&str, Aircraft> = HashMap::new();
     let _shared_aircraft_additional_data = Arc::new(Mutex::new(aircraft_additional_data));
 
@@ -147,7 +99,7 @@ async fn main() {
         .add_plugins(plugin_plane::plugin)      // plane related, setup, updates
         .add_plugins(plugin_sound::plugin)      //
         // .add_plugins(plugin_airspace::plugin)          // static airspace structures, e.g. no flight zones
-        // .add_plugins(plugin_groundstructures::plugin)  // structures on ground
+        // .add_plugins(plugin_ground_structures::plugin)
         .run();
 }
 
