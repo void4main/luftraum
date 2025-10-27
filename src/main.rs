@@ -7,7 +7,6 @@ use std::{error::Error, fs, process};
 use crate::data_share::SharedDataDb;
 use crate::hex_lookup::*;
 use crate::network::*;
-use crate::terrain::*;
 
 use jemallocator::Jemalloc;
 
@@ -40,8 +39,8 @@ struct ShareStruct(Arc<Mutex<SharedDataDb>>);
 struct Configuration {
     sbs_server: Option<Vec<SbsServer>>,
     mqtt_broker: Option<Vec<MqttBroker>>,
-    terrain_tile_size: TerrainTileSize,
-    terrain_srtm_file: Vec<TerrainSrtmFile>,
+    //terrain_tile_size: TerrainTileSize,
+    //terrain_srtm_file: Vec<TerrainSrtmFile>,
 }
 
 #[tokio::main]
@@ -93,9 +92,9 @@ async fn main() {
             primary_window: app_window,
             ..default()
         }))
-        .insert_resource(ShareStruct(bevy_plane_data_db))
-        .add_plugins(plugin_egui::plugin)       // egui
+        .insert_resource(ShareStruct(bevy_plane_data_db))   
         .add_plugins(setup::plugin)             // camera, basic landscape, support gizmos
+        .add_plugins(plugin_egui::plugin)       // egui
         .add_plugins(plugin_plane::plugin)      // plane related, setup, updates
         .add_plugins(plugin_sound::plugin)      //
         // .add_plugins(plugin_airspace::plugin)          // static airspace structures, e.g. no flight zones

@@ -2,7 +2,8 @@ use crate::hex_lookup::{fetch_aircraft, Aircraft};
 use crate::math::haversine_distance;
 use chrono::{NaiveDate, NaiveTime};
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
+use bevy::prelude::Resource;
 use once_cell::sync::Lazy;
 
 // All ADS-B data is stored and shared between network and Bevy in here

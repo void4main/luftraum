@@ -34,7 +34,7 @@ struct TimerResource(Timer);
 #[derive(Component, Resource)]
 pub struct Plane {
     pub hex: String,              // Plane hex-id
-    pub pos: Vec<[f32; 3]>, // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
+    pub pos: Vec<[f32; 3]>,       // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
     pub track_id: Option<Entity>, // Bevy entity id of track
 }
 
