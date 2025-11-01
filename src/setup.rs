@@ -5,7 +5,7 @@ use bevy::render::mesh::VertexAttributeValues;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 use crate::math::*;
-use crate::plugin_plane::*;
+use crate::plugin_aircraft::*;
 use crate::srtm::*;
 use crate::terrain_color_spectrum::*;
 
@@ -17,7 +17,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(Startup, setup)
         .add_systems(
             Update,
-            (update_planes, support_structures, toggle_wireframe),
+            (update_aircraft, support_structures, toggle_wireframe),
         );
 }
 

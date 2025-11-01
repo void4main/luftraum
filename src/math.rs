@@ -155,5 +155,14 @@ mod tests {
 
         let distance = haversine_distance(ny_lat, ny_lon, london_lat, london_lon);
         assert!((distance - 5585.0).abs() < 50.0); // Allow 50km tolerance
+
+        // Distance of one degree
+        let a_lat = 40.0;
+        let a_lon = -74.0;
+        let b_lat = 41.0;
+        let b_lon = -74.0;
+
+        let distance = haversine_distance(a_lat,a_lon, b_lat, b_lon);
+        assert!((distance - 111.2275).abs() < 0.09);
     }
 }

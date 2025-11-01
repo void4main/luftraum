@@ -2,23 +2,22 @@ use crate::hex_lookup::{fetch_aircraft, Aircraft};
 use crate::math::haversine_distance;
 use chrono::{NaiveDate, NaiveTime};
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use bevy::prelude::Resource;
+use std::sync::Mutex;
 use once_cell::sync::Lazy;
 
 // All ADS-B data is stored and shared between network and Bevy in here
 pub struct SharedDataDb {
-    plane_db: HashMap<String, PlaneDataSet>, // PlaneID and related data
+    aircraft_db: HashMap<String, AircraftDataSet>, // PlaneID and related data
 }
 
-struct PlaneDataSet {
+struct AircraftDataSet {
     plane_id: String,           // Redundant to hex_ident
     last_seen: usize,           // Set to 0 on new or updated entries
-    data_const: PlaneDataConst, // Store all fixed plane data
-    data_var: PlaneDataVar,     // Store variable plane data
+    data_const: AircraftDataConst, // Store all fixed plane data
+    data_var: AircraftDataVar,     // Store variable plane data
 }
 
-struct PlaneDataConst {
+struct AircraftDataConst {
     session_id: Option<String>,  // Session ID (optional, often empty)
     aircraft_id: Option<String>, // Aircraft ID (optional, often empty)
     hex_ident: String,           // ICAO 24-bit address in hexadecimal
@@ -26,7 +25,7 @@ struct PlaneDataConst {
     call_sign: Option<String>,   // Aircraft call_sign (optional)
 }
 
-struct PlaneDataVar {
+struct AircraftDataVar {
     message_type: Vec<String>,       // Message type (e.g., "MSG")
     transmission_type: Vec<usize>,   // Transmission type (e.g., 1, 2, 3, etc.)
     generated_date: Vec<NaiveDate>,  // Date the message was generated (UTC)
@@ -49,56 +48,56 @@ struct PlaneDataVar {
 impl SharedDataDb {
     pub fn new() -> SharedDataDb {
         SharedDataDb {
-            plane_db: HashMap::<String, PlaneDataSet>::new(),
+            aircraft_db: HashMap::<String, AircraftDataSet>::new(),
         }
     }
 
     pub fn get_planes_id(&self) -> Vec<&str> {
-        let list_of_planes: Vec<&str> = self.plane_db.keys().map(|s| s.as_str()).collect();
+        let list_of_planes: Vec<&str> = self.aircraft_db.keys().map(|s| s.as_str()).collect();
         list_of_planes
     }
 
     pub fn increase_last_seen(&mut self, value_sec: usize) {
         // Increase last_seen of all plane entries
-        for (_key, value) in self.plane_db.iter_mut() {
+        for (_key, value) in self.aircraft_db.iter_mut() {
             value.last_seen += value_sec;
         }
     }
 
     pub fn get_last_seen(&self, plane_id: String) -> usize {
-        self.plane_db.get(&plane_id).unwrap().last_seen
+        self.aircraft_db.get(&plane_id).unwrap().last_seen
     }
 
     pub fn get_squawk(&self, plane_id: String) -> Option<i32> {
-        self.plane_db
+        self.aircraft_db
             .get(&plane_id)
             .and_then(|p_dataset| p_dataset.data_var.squawk.last().cloned())
             .flatten()
     }
 
     pub fn get_ground_speed(&self, plane_id: String) -> Option<f32> {
-        self.plane_db
+        self.aircraft_db
             .get(&plane_id)
             .and_then(|p_dataset| p_dataset.data_var.ground_speed.last().cloned())
             .flatten()
     }
 
     pub fn get_track(&self, plane_id: String) -> Option<f32> {
-        self.plane_db
+        self.aircraft_db
             .get(&plane_id)
             .and_then(|p_dataset| p_dataset.data_var.track.last().cloned())
             .flatten()
     }
 
     pub fn is_on_ground(&self, plane_id: String) -> Option<bool> {
-        self.plane_db
+        self.aircraft_db
             .get(&plane_id)
             .and_then(|p_dataset| p_dataset.data_var.is_on_ground.last().cloned())
             .flatten()
     }
 
     pub fn remove_plane(&mut self, plane_id: String) {
-        self.plane_db.remove(&plane_id);
+        self.aircraft_db.remove(&plane_id);
     }
 
     // pub fn get_latest_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
@@ -113,7 +112,7 @@ impl SharedDataDb {
     // Return last not None except empty
     pub fn get_latest_known_pos(&self, plane_id: String) -> Option<(f32, f32, f32)> {
         // let last_some = vec.iter().rev().find_map(|x| *x);
-        self.plane_db.get(&plane_id).and_then(|p_dataset| {
+        self.aircraft_db.get(&plane_id).and_then(|p_dataset| {
             let lat = p_dataset
                 .data_var
                 .latitude
@@ -138,7 +137,7 @@ impl SharedDataDb {
 
     /// Returns latest known altitude
     pub fn get_latest_known_altitude(&self, plane_id: String) -> Option<f32> {
-        self.plane_db.get(&plane_id).and_then(|p_dataset| {
+        self.aircraft_db.get(&plane_id).and_then(|p_dataset| {
             let alt = p_dataset
                 .data_var
                 .altitude
@@ -150,13 +149,13 @@ impl SharedDataDb {
     }
 
     pub fn get_call_sign(&self, plane_id: String) -> Option<String> {
-        self.plane_db
+        self.aircraft_db
             .get(&plane_id)
             .and_then(|p_dataset| p_dataset.data_const.call_sign.clone())
     }
 
     pub fn get_vertical_rate(&self, plane_id: String) -> Option<f32> {
-        self.plane_db
+        self.aircraft_db
             .get(&plane_id)
             .and_then(|p_dataset| p_dataset.data_var.vertical_rate.last().cloned())
             .flatten()
@@ -201,7 +200,7 @@ impl SharedDataDb {
         spi: Option<bool>,
         is_on_ground: Option<bool>,
     ) {
-        let temp = &mut self.plane_db;
+        let temp = &mut self.aircraft_db;
         // Update if plane already created
         if temp.contains_key(&hex_ident) {
             // TODO: implement update
@@ -259,17 +258,17 @@ impl SharedDataDb {
             //
             temp.insert(
                 hex_ident.clone(),
-                PlaneDataSet {
+                AircraftDataSet {
                     plane_id: hex_ident.clone(),
                     last_seen: 0, // New insert, so last_seen is now
-                    data_const: PlaneDataConst {
+                    data_const: AircraftDataConst {
                         session_id,
                         aircraft_id,
                         hex_ident,
                         flight_id,
                         call_sign,
                     },
-                    data_var: PlaneDataVar {
+                    data_var: AircraftDataVar {
                         message_type: vec![message_type],
                         transmission_type: vec![transmission_type],
                         generated_date: vec![generated_date],

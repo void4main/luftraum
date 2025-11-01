@@ -18,11 +18,11 @@ pub fn plugin(app: &mut App) {
     .add_systems(
         Update,
         (
-            create_planes,
-            update_planes,
+            create_aircraft,
+            update_aircraft,
             update_route,
-            increase_plane_last_seen,
-            despawn_planes,
+            increase_aircraft_last_seen,
+            despawn_aircraft,
             show_tracks,
         ),
     );
@@ -31,16 +31,17 @@ pub fn plugin(app: &mut App) {
 #[derive(Resource)]
 struct TimerResource(Timer);
 
+// Copy of all positions
 #[derive(Component, Resource)]
-pub struct Plane {
+pub struct Aircraft {
     pub hex: String,              // Plane hex-id
-    pub pos: Vec<[f32; 3]>,       // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
+    pub pos: Vec<[f32; 3]>, // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
     pub track_id: Option<Entity>, // Bevy entity id of track
 }
 
-impl Plane {
-    pub fn new(hex: String) -> Plane {
-        Plane {
+impl Aircraft {
+    pub fn new(hex: String) -> Aircraft {
+        Aircraft {
             hex,
             pos: Vec::new(),
             track_id: None,
@@ -48,15 +49,15 @@ impl Plane {
     }
 }
 
-// TODO: Rename example code
+// Create two spheres under aircraft for testing
 #[derive(Resource)]
-struct ChildEntities {
-    first_child: Entity,
-    second_child: Entity,
+struct PositionIndicators {
+    left: Entity,
+    right: Entity,
 }
 
 // Create update all planes positions
-pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMut<ShareStruct>) {
+pub fn update_aircraft(mut query: Query<(&mut Transform, &mut Aircraft)>, read: ResMut<ShareStruct>) {
     // TODO: Beautify code
     let read_tmp = read.0.lock().unwrap();
     let plane_list: Vec<String> = read_tmp
@@ -100,11 +101,11 @@ pub fn update_planes(mut query: Query<(&mut Transform, &mut Plane)>, read: ResMu
     }
 }
 
-pub fn create_planes(
+pub fn create_aircraft(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(&mut Transform, &Plane)>,
+    query: Query<(&mut Transform, &Aircraft)>,
     read: Res<ShareStruct>,
     asset_server: Res<AssetServer>,
 ) {
@@ -120,34 +121,34 @@ pub fn create_planes(
         // Check is plane already exists
         if !spawned_list.contains(&plane_id_tmp) {
             // Beim Spawnen
-            let mut child_entities = ChildEntities {
-                first_child: Entity::PLACEHOLDER,
-                second_child: Entity::PLACEHOLDER,
+            let mut child_entities = PositionIndicators {
+                left: Entity::PLACEHOLDER,
+                right: Entity::PLACEHOLDER,
             };
 
             commands
                 .spawn((
-                    Plane::new(plane_id_tmp),
+                    Aircraft::new(plane_id_tmp),
                     SceneRoot(
                         asset_server
                             .load(GltfAssetLabel::Scene(0).from_asset("planes/plane-b.glb")),
                     ),
                     // TODO: Scale planes according to zoom level and other
-                    Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(1.5)),
+                    Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(1.0)),
                 ))
                 .with_children(|parent| {
-                    child_entities.first_child = parent
-                        .spawn((
-                            Mesh3d(meshes.add(Sphere { radius: 0.5 })),
-                            MeshMaterial3d(materials.add(Color::Srgba(RED_400))),
-                            Transform::from_xyz(-2.0, 0.0, 0.0),
-                        ))
-                        .id();
-                    child_entities.second_child = parent
+                    child_entities.left = parent
                         .spawn((
                             Mesh3d(meshes.add(Sphere::new(0.5))),
                             MeshMaterial3d(materials.add(Color::Srgba(BLUE_500))),
                             Transform::from_xyz(2.0, 0.0, 0.0),
+                        ))
+                        .id();
+                    child_entities.right = parent
+                        .spawn((
+                            Mesh3d(meshes.add(Sphere { radius: 0.5 })),
+                            MeshMaterial3d(materials.add(Color::Srgba(RED_400))),
+                            Transform::from_xyz(-2.0, 0.0, 0.0),
                         ))
                         .id();
                 });
@@ -204,7 +205,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
     }
 }
 
-fn increase_plane_last_seen(
+fn increase_aircraft_last_seen(
     time: Res<Time>,
     mut timer: ResMut<TimerResource>,
     read: Res<ShareStruct>,
@@ -216,11 +217,11 @@ fn increase_plane_last_seen(
     }
 }
 
-fn despawn_planes(
+fn despawn_aircraft(
     mut commands: Commands,
     time: Res<Time>,
     mut timer: ResMut<TimerResource>,
-    mut query: Query<(Entity, &Plane)>,
+    mut query: Query<(Entity, &Aircraft)>,
     read: Res<ShareStruct>,
     mut ui_state: ResMut<UiState>,
 ) {
@@ -249,7 +250,7 @@ fn despawn_planes(
 
 pub fn show_tracks(
     mut commands: Commands,
-    mut query: Query<(&mut Transform, &mut Plane)>,
+    mut query: Query<(&mut Transform, &mut Aircraft)>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut ui_state: ResMut<UiState>,

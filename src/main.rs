@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::{error::Error, fs, process};
+use bevy::prelude::*;
+use serde::Deserialize;
 
 use crate::data_share::SharedDataDb;
 use crate::hex_lookup::*;
@@ -23,7 +23,7 @@ mod plugin_airspace;
 mod plugin_antenna;
 mod plugin_egui;
 mod plugin_ground_structures;
-mod plugin_plane;
+mod plugin_aircraft;
 //mod sbs;
 mod setup;
 mod squawks;
@@ -44,7 +44,7 @@ struct Configuration {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     // Load configuration from file
     let cfg = load_configuration("luftraum_config.toml");
     let config = cfg.unwrap_or_else(|err| {
@@ -81,7 +81,7 @@ async fn main() {
         }
     }
 
-    // Set application name
+    // Set application name and run bevy and plugins
     let app_window = Some(Window {
         title: "Luftraum".into(),
         ..default()
@@ -95,11 +95,13 @@ async fn main() {
         .insert_resource(ShareStruct(bevy_plane_data_db))   
         .add_plugins(setup::plugin)             // camera, basic landscape, support gizmos
         .add_plugins(plugin_egui::plugin)       // egui
-        .add_plugins(plugin_plane::plugin)      // plane related, setup, updates
+        .add_plugins(plugin_aircraft::plugin)      // plane related, setup, updates
         .add_plugins(plugin_sound::plugin)      //
         // .add_plugins(plugin_airspace::plugin)          // static airspace structures, e.g. no flight zones
         // .add_plugins(plugin_ground_structures::plugin)
         .run();
+
+    Ok(())
 }
 
 fn load_configuration(path: &str) -> Result<Configuration, Box<dyn Error>> {

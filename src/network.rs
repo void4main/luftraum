@@ -1,9 +1,9 @@
+use rumqttc::{AsyncClient, Event, Incoming, MqttOptions, QoS};
+use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::time::{Duration, sleep};
-use rumqttc::{Event, Incoming, MqttOptions, AsyncClient, QoS};
-use serde::Deserialize;
 
 use crate::data_share::*;
 use crate::decode::decode_message_sbs;
@@ -38,9 +38,9 @@ impl SbsServer {
 }
 
 pub async fn connect_dump1090_sbs(
-    data_share: &Arc<Mutex<SharedDataDb>>, sbs_server: SbsServer,
+    data_share: &Arc<Mutex<SharedDataDb>>,
+    sbs_server: SbsServer,
 ) -> Result<(), Box<dyn std::error::Error>> {
-
     // Define the address and port where dump1090 is serving data and connect to server
     let addr = format!("{}:{}", sbs_server.sbs_hostname, sbs_server.sbs_port);
 
@@ -65,7 +65,6 @@ pub async fn connect_dump1090_sbs(
 
         // Process each line of data received from dump1090
         'read: loop {
-
             let line = lines.next_line().await;
             match line {
                 Ok(Some(message)) => {
@@ -90,9 +89,10 @@ pub async fn connect_dump1090_sbs(
 }
 
 /// Connect to MQTT broker to pull ADS-B messages
-pub async fn connect_mqtt(data_share: &Arc<Mutex<SharedDataDb>>, mqtt_broker: MqttBroker
+pub async fn connect_mqtt(
+    data_share: &Arc<Mutex<SharedDataDb>>,
+    mqtt_broker: MqttBroker,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    
     let broker = mqtt_broker.mqtt_broker_hostname;
     let port = mqtt_broker.mqtt_broker_port;
     let keepalive = mqtt_broker.mqtt_keepalive; // Seconds
@@ -108,29 +108,31 @@ pub async fn connect_mqtt(data_share: &Arc<Mutex<SharedDataDb>>, mqtt_broker: Mq
     client.subscribe(topic, QoS::AtMostOnce).await.unwrap();
 
     loop {
-
         match eventloop.poll().await {
             Ok(Event::Incoming(Incoming::Publish(p))) => {
                 // println!("Topic: {}, Payload: {:?}", p.topic, p.payload);
                 let message = str::from_utf8(p.payload.as_ref());
                 match message {
-                Ok(message) => {
-                    // Log everything to file by now, message is the raw data set
-                    let _ = log_messages(&p.topic, &message);
-                    // Decode message and store it in struct
-                    let _ = decode_message_sbs(data_share, message.parse().unwrap());
+                    Ok(message) => {
+                        // Log everything to file by now, message is the raw data set
+                        let _ = log_messages(&p.topic, &message);
+                        // Decode message and store it in struct
+                        let _ = decode_message_sbs(data_share, message.parse().unwrap());
+                    }
+                    Err(e) => {
+                        eprintln!("Error reading message. Error: {:?}", e);
+                    }
                 }
-                Err(e) => {
-                    eprintln!("Error reading message. Error: {:?}", e);}
-                }
-
             }
             Ok(Event::Incoming(i)) => {
                 println!("Incoming = {i:?}");
             }
-            Ok(Event::Outgoing(o)) => println!("Outgoing {:?}", o),    // Subscribe is in here as well ...
+
+            Ok(Event::Outgoing(o)) => println!("Outgoing {:?}", o), // Subscribe is in here as well ...
+            // Name the error and try again ...
             Err(e) => {
-                println!("Error = {e:?}");
+                eprintln!("Error = {e:?}");
+                // Is this needed?
                 return Ok(());
             }
         }
