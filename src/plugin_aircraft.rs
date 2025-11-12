@@ -73,19 +73,22 @@ pub fn update_aircraft(mut query: Query<(&mut Transform, &mut Aircraft)>, read: 
                 // Update position if all Some has data
                 let pos = read_tmp.get_latest_known_pos(plane_id.to_string());
 
+                // TODO: Store map_range vars in resource
                 if pos.is_some() {
                     let lat = pos.unwrap().0;
                     let lon = pos.unwrap().1;
                     let lat1 = map_range(lat, 50.0, 55.0, 1000.0, -1000.0);
                     let lon1 = map_range(lon, 5.0, 10.0, -1000.0, 1000.0);
-                    let height = pos.unwrap().2;
+                    let altitude = pos.unwrap().2;
 
-                    // TODO: Distribute scale factor and clarify magic 0.3048
-                    let scale = 0.00361;
-                    plane.0.translation = Vec3::new(lon1, height * scale * 0.3048, lat1); // What was 0.3048 again?
+                    // TODO: Store scale in resource
+                    let scale = 0.00361;  // landscape px to m ratio
+                    // ft -> m -> px
+                    let altitude_px = altitude.to_meters() * scale;
+                    plane.0.translation = Vec3::new(lon1, altitude_px, lat1);
 
                     // Save position, to show flight path
-                    plane.1.pos.push([lon1, height * scale * 0.3048, lat1]);
+                    plane.1.pos.push([lon1, altitude_px, lat1]);
                 }
 
                 // Rotate plane
@@ -168,7 +171,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
             // TODO: Distribute scale factor
             let scale = 0.00361;
             gizmos.cross(
-                Vec3::new(lon1, plane_data.2 * scale * 0.3048, lat1),
+                Vec3::new(lon1, plane_data.2.to_meters() * scale, lat1),
                 5.0,
                 RED_400,
             );
@@ -181,7 +184,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
             if ui_state.pos_ground_arrow {
                 gizmos.arrow(
                     Vec3::new(lon1, 0.0, lat1),
-                    Vec3::new(lon1, plane_data.2 * scale * 0.3048, lat1),
+                    Vec3::new(lon1, plane_data.2.to_meters() * scale, lat1),
                     YELLOW_500,
                 );
             }
@@ -195,7 +198,7 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
                     let scale = 0.00361;
 
                     gizmos.line(
-                        Vec3::new(lon1, plane_data.2 * scale * 0.3048, lat1),
+                        Vec3::new(lon1, plane_data.2.to_meters() * scale, lat1),
                         Vec3::new(ant_lon1, 1.0 * scale * 0.3048, ant_lat1),
                         YELLOW_200,
                     );

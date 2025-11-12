@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::{error::Error, fs, process};
+use std::process;
 use bevy::prelude::*;
-use serde::Deserialize;
 
+use crate::configuration::*;
 use crate::data_share::SharedDataDb;
 use crate::hex_lookup::*;
 use crate::network::*;
@@ -31,24 +31,17 @@ mod srtm;
 mod terrain;
 mod terrain_color_spectrum;
 mod plugin_sound;
+mod configuration;
 
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
-
-#[derive(Debug, Deserialize, Clone)]
-struct Configuration {
-    sbs_server: Option<Vec<SbsServer>>,
-    mqtt_broker: Option<Vec<MqttBroker>>,
-    //terrain_tile_size: TerrainTileSize,
-    //terrain_srtm_file: Vec<TerrainSrtmFile>,
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Load configuration from file
     let cfg = load_configuration("luftraum_config.toml");
     let config = cfg.unwrap_or_else(|err| {
-        eprintln!("Error loading 'luftraum_config.toml': {}", err);
+        error!("Error loading 'luftraum_config.toml': {}", err);
         process::exit(1);
     });
 
@@ -57,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
     let shared_plane_data_db = Arc::new(Mutex::new(plane_data_db));
     let bevy_plane_data_db = shared_plane_data_db.clone();
 
-    // Create struct to store additional aircraft data
+    // Create struct to store additional aircraft data, e.g. aircraft type
     let aircraft_additional_data: HashMap<&str, Aircraft> = HashMap::new();
     let _shared_aircraft_additional_data = Arc::new(Mutex::new(aircraft_additional_data));
 
@@ -102,10 +95,4 @@ async fn main() -> anyhow::Result<()> {
         .run();
 
     Ok(())
-}
-
-fn load_configuration(path: &str) -> Result<Configuration, Box<dyn Error>> {
-    let raw = fs::read_to_string(path)?;
-    let cfg: Configuration = toml::from_str(&raw)?;
-    Ok(cfg)
 }
