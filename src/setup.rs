@@ -65,8 +65,12 @@ pub fn setup(
         // TODO: Get data from file
         let pix_meter = get_pix_m(1.0, srtm_data.num_rows as usize, 0.0008333, terrain_width);
         let scale = pix_meter;
-        for pos in positions.iter_mut().enumerate() {
-            pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
+
+        if positions.len() != srtm_data.terrain_data.len() {
+            eprintln!("Error: Mismatch between positions: {} and terrain_data: {}", positions.len(), srtm_data.terrain_data.len());
+        }
+        for (p, terrain) in positions.iter_mut().zip(srtm_data.terrain_data.iter()) {
+            p[1] = *terrain * scale; // set new height level
         }
 
         // Add colour scheme
