@@ -1,9 +1,8 @@
 use std::time::Duration;
-
+use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind::{BLUE_500, RED_400, YELLOW_200, YELLOW_500};
+use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
-use bevy::render::mesh::{Indices, PrimitiveTopology}; // Plane track mesh
-use bevy::render::render_asset::RenderAssetUsages;
 
 use crate::ShareStruct;
 use crate::math::*;
@@ -32,11 +31,11 @@ pub fn plugin(app: &mut App) {
 struct TimerResource(Timer);
 
 // Copy of all positions
-#[derive(Component, Resource)]
+#[derive(Component, Resource, Debug)]
 pub struct Aircraft {
-    pub hex: String,              // Plane hex-id
-    pub pos: Vec<[f32; 3]>, // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
-    pub track_id: Option<Entity>, // Bevy entity id of track
+    pub hex: String,                // Aircraft hex-id
+    pub pos: Vec<[f32; 3]>,         // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
+    pub track_id: Option<Entity>,   // Bevy entity id of track
 }
 
 impl Aircraft {
@@ -232,20 +231,23 @@ fn despawn_aircraft(
     if timer.0.just_finished() {
         let mut read_tmp = read.0.lock().unwrap();
         for plane_id in query.iter_mut() {
-            // Plane 'lifetime' if unseen
-            // TODO: Setup time in egui
+            // Aircraft 'lifetime' if unseen
+            // TODO: Setup time in egui and clean up process
             if read_tmp.get_last_seen(plane_id.1.hex.clone()) >= 60 {
+
+                // Remove track
+                plane_id
+                    .1
+                    .track_id
+                    .map(|track| commands.entity(track).try_despawn());
+
                 // Remove Bevy entity
                 commands.entity(plane_id.0).despawn();
                 // Remove from Egui ui state
                 ui_state.plane_checkbox.remove(&plane_id.1.hex.clone());
                 // Remove shared data
                 read_tmp.remove_plane(plane_id.1.hex.clone());
-                // Remove track
-                plane_id
-                    .1
-                    .track_id
-                    .map(|track| commands.entity(track).despawn());
+
             }
         }
     }
@@ -259,13 +261,14 @@ pub fn show_tracks(
     mut ui_state: ResMut<UiState>,
 ) {
     for mut plane_id in query.iter_mut() {
-        // Spawn track if plane is selected in egui and has not been built
+        // Spawn track if aircraft is selected in egui and has not been built
+        // TODO: Bad solution, track isn't renewed
+        // There must be at least four stores position to generate the mesh
         if plane_id.1.pos.len() >= 4 {
             if *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id == None {
                 // Build mesh only if useful
-
                 let all_pos = plane_id.1.pos.clone();
-                let mesh = plane_track_mesh(all_pos.clone());
+                let mesh = plane_track_mesh(all_pos.clone()); // mesh is built here
                 let id = commands
                     .spawn((
                         Mesh3d(meshes.add(mesh)),
@@ -278,14 +281,20 @@ pub fn show_tracks(
                         })),
                     ))
                     .id();
-                plane_id.1.track_id = Some(id);
-            } else if !*ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id.is_some()
+                plane_id.1.track_id = Some(id); // Save the entity id inside in hashmap
+            } else if ! *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id.is_some()
             {
-                plane_id
-                    .1
-                    .track_id
-                    .map(|track| commands.entity(track).despawn());
+                // Check if entity still exists and then despawn it (needed and didn't work in bevy 16.1)
+                let entity_id = plane_id.1.track_id.unwrap();
+
+                if let Ok(_) = commands.get_entity(entity_id) {
+                    plane_id
+                        .1
+                        .track_id
+                        .map(|track| commands.entity(track).try_despawn());
+                }
                 plane_id.1.track_id = None;
+
             }
         }
     }

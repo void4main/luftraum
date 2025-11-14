@@ -28,7 +28,7 @@ impl TransponderCodeColor {
 }
 
 // Static list of 'special' squawks with description, Int & DE, colours defined by me
-// From https://de.wikipedia.org/wiki/Transpondercode
+// reference https://de.wikipedia.org/wiki/Transpondercode
 fn get_transponder_codes() -> &'static HashMap<i32, (&'static str, TransponderCodeColor)> {
     TRANSPONDER_CODES.get_or_init(|| {
         let mut map = HashMap::new();

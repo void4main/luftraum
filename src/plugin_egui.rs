@@ -46,7 +46,7 @@ fn ui_system(
     read: Res<ShareStruct>,
     mut ui_state: ResMut<UiState>,
     cooldown: Res<SoundCooldown>,
-    mut event_writer: EventWriter<PlaySoundEvent>,
+    mut event_writer: MessageWriter<PlaySoundEvent>,
 ) {
     let read_tmp = read.0.lock().unwrap();
     let plane_list = read_tmp.get_planes_id();

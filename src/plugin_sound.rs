@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
-#[derive(Event)]
+//#[derive(Event)]
+#[derive(Message)]
 pub struct PlaySoundEvent {
     pub sound_type: SoundType,
 }
@@ -43,7 +44,7 @@ fn update_cooldown(time: Res<Time>, mut cooldown: ResMut<SoundCooldown>) {
 
 fn play_sound_on_event(
     mut commands: Commands,
-    mut events: EventReader<PlaySoundEvent>,
+    mut events: MessageReader<PlaySoundEvent>,
     sounds: Res<LuftraumSounds>,
     mut cooldown: ResMut<SoundCooldown>,
 ) {

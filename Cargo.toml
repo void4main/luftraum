@@ -1,6 +1,6 @@
 [package]
 name = "luftraum"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2024"
 
 #[dev-dependencies]
@@ -20,13 +20,14 @@ tokio = { version = "1.47.1", features = ["full"] }
 chrono = "0.4"
 anyhow = "1.0.100"
 
-bevy = "0.16.1"
-bevy_panorbit_camera = {version = "0.28.0", features = ["bevy_egui"] }
-bevy_egui = "0.36.0"
+bevy = { version = "0.17.2", features = ["track_location"] }
+bevy_mesh = "0.17.2"
+bevy_panorbit_camera = {version = "0.33", features = ["bevy_egui"] }
+bevy_egui = "0.38.0"
 
 # Load config files
 serde = "1.0.228"
-toml = "0.9.7"
+toml = "0.9.8"
 
 # Collect data from MQTT broker
 rumqttc = "0.25"
