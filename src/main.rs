@@ -88,8 +88,8 @@ async fn main() -> anyhow::Result<()> {
         .insert_resource(ShareStruct(bevy_plane_data_db))   
         .add_plugins(setup::plugin)             // camera, basic landscape, support gizmos
         .add_plugins(plugin_egui::plugin)       // egui
-        .add_plugins(plugin_aircraft::plugin)      // plane related, setup, updates
-        .add_plugins(plugin_sound::plugin)      //
+        .add_plugins(plugin_aircraft::plugin)   // aircraft related, setup, updates
+        .add_plugins(plugin_sound::plugin)      // notifications
         // .add_plugins(plugin_airspace::plugin)          // static airspace structures, e.g. no flight zones
         // .add_plugins(plugin_ground_structures::plugin)
         .run();
