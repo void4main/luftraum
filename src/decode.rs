@@ -3,7 +3,8 @@ use std::sync::{Arc, Mutex};
 use crate::data_share::*;
 
 pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String) {
-    if message.len() > 0 && message.len() < 255 && message.is_ascii() { // Basic checks ;-)
+    // Simple filter for defect or unknown messages
+    if message.len() > 0 && message.len() < 255 && message.is_ascii() {
 
         // Split message into (22) pieces by definition of SBS messages
         let vec: Vec<&str> = message.split(',').collect();
@@ -63,9 +64,9 @@ pub fn decode_message_sbs(data_share: &Arc<Mutex<SharedDataDb>>, message: String
                 Some(tmp_is_on_ground_bool),
             );
         } else {
-            // Dropped messages
-            // TODO: Add to statistics for RCA if any
-            dbg!("Warning dropped: {message}");
+            eprintln!("Warning, message dropped (split size wrong): '{message}'");
         }
+    } else {
+        eprintln!("Warning, received and dropped message: '{message}'");
     }
 }

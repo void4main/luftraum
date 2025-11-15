@@ -132,7 +132,7 @@ fn ui_system(
                                     squawk_description = squawk.0.to_string();
 
                                     // Check sound notification is turned on and if already triggered lately
-                                    if ui_state.notification_sound && cooldown.timer.finished() {
+                                    if ui_state.notification_sound && cooldown.timer.is_finished() {
                                         event_writer.write(PlaySoundEvent {
                                             sound_type: SoundType::Attention,
                                         });

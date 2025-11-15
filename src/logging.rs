@@ -2,7 +2,7 @@ use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::time::SystemTime;
 
-/// Logs all received ADB-S data to a static file.
+/// Logs all received ADB-S data to a static file (can grow fast)
 pub fn log_messages(src: &str, message: &str) -> std::io::Result<()> {
     let file = OpenOptions::new()
         .create(true)

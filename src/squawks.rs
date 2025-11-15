@@ -1,6 +1,8 @@
 use std::sync::OnceLock;
 use std::collections::HashMap;
 use bevy_egui::egui::Color32;
+
+// TODO: Read transponder code descriptions from file
 static TRANSPONDER_CODES: OnceLock<HashMap<i32, (&str, TransponderCodeColor)>> = OnceLock::new();
 
 // 
