@@ -23,7 +23,7 @@ pub struct MqttBroker {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SbsServer {
-    pub label: String,
+    pub _label: String,
     pub sbs_hostname: String,
     pub sbs_port: u32,
 }
@@ -109,6 +109,7 @@ pub async fn connect_mqtt(
 
     loop {
         match eventloop.poll().await {
+
             Ok(Event::Incoming(Incoming::Publish(p))) => {
                 // println!("Topic: {}, Payload: {:?}", p.topic, p.payload);
                 let message = str::from_utf8(p.payload.as_ref());
@@ -124,11 +125,13 @@ pub async fn connect_mqtt(
                     }
                 }
             }
+
             Ok(Event::Incoming(i)) => {
                 println!("Incoming = {i:?}");
             }
 
             Ok(Event::Outgoing(o)) => println!("Outgoing {:?}", o), // Subscribe is in here as well ...
+
             // Name the error and try again ...
             Err(e) => {
                 eprintln!("Error = {e:?}");

@@ -9,6 +9,9 @@ use crate::plugin_aircraft::*;
 use crate::srtm::*;
 use crate::terrain_color_spectrum::*;
 
+#[derive(Component)]
+pub struct Ground;
+
 pub fn plugin(app: &mut App) {
     app.add_plugins(PanOrbitCameraPlugin)
         .add_plugins(WireframePlugin {
@@ -41,6 +44,12 @@ pub fn setup(
         PanOrbitCamera::default(),
     ));
 
+    // Plane interim
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(4000., 4000.))),
+        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
+        Ground,
+    ));
     //
     // Terrain
     //
@@ -51,56 +60,85 @@ pub fn setup(
     let terrain_height = 2000.0;
 
     // Build mesh
-    let mut terrain = Mesh::from(
-        Plane3d::default()
-            .mesh()
-            .size(terrain_width, terrain_height)
-            .subdivisions(sub_divisions),
-    );
+    // let mut terrain = Mesh::from(
+    //     Plane3d::default()
+    //         .mesh()
+    //         .size(terrain_width, terrain_height)
+    //         .subdivisions(sub_divisions),
+    // );
 
-    // Transform heights of mesh
-    if let Some(VertexAttributeValues::Float32x3(positions)) =
-        terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
-    {
-        // TODO: Get data from file
-        let pix_meter = get_pix_m(1.0, srtm_data.num_rows as usize, 0.0008333, terrain_width);
-        let scale = pix_meter;
-
-        if positions.len() != srtm_data.terrain_data.len() {
-            eprintln!("Error: Mismatch between positions: {} and terrain_data: {}", positions.len(), srtm_data.terrain_data.len());
-        }
-        for (p, terrain) in positions.iter_mut().zip(srtm_data.terrain_data.iter()) {
-            p[1] = *terrain * scale; // set new height level
-        }
-
-        // Add colour scheme
-        let colors: Vec<[f32; 4]> = positions
-            .iter()
-            .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
-            .collect();
-
-        terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-        terrain.compute_normals();
-    }
+    // // Transform heights of mesh
+    // if let Some(VertexAttributeValues::Float32x3(positions)) =
+    //     terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
+    // {
+    //     // TODO: Get data from file
+    //     let pix_meter = get_pix_m(1.0, srtm_data.num_rows as usize, 0.0008333, terrain_width);
+    //     let scale = pix_meter;
+    //
+    //     if positions.len() != srtm_data.terrain_data.len() {
+    //         eprintln!("Error: Mismatch between positions.len(): {} and terrain_data.len(): {}", positions.len(), srtm_data.terrain_data.len());
+    //     }
+    //     for (p, terrain) in positions.iter_mut().zip(srtm_data.terrain_data.iter()) {
+    //         p[1] = *terrain * scale; // set new height level
+    //     }
+    //
+    //     // Add colour scheme
+    //     let colors: Vec<[f32; 4]> = positions
+    //         .iter()
+    //         .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
+    //         .collect();
+    //
+    //     terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
+    //     terrain.compute_normals();
+    // }
+    //
+    //
 
     // Spawn terrain
-    commands.spawn((
-        Mesh3d(meshes.add(terrain)),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            ..Default::default()
-        })),
-        Terrain,
-    ));
+    // commands.spawn((
+    //     Mesh3d(meshes.add(terrain)),
+    //     MeshMaterial3d(materials.add(StandardMaterial {
+    //         ..Default::default()
+    //     })),
+    //     Terrain,
+    // ));
 
     //
     // Terrain 2, TODO: Terrain sizes and stitching etc. etc.
     //
-    let srtm_data = import_srtm(1);
-    let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0 again?
-
-    let terrain_width = 2000.0;
-    let terrain_height = 2000.0;
-
+    // let srtm_data = import_srtm(1);
+    // let sub_divisions = get_num_subdivisions(srtm_data.num_cols as u32) * 2; // TODO: Why * 2.0 again?
+    //
+    // let terrain_width = 2000.0;
+    // let terrain_height = 2000.0;
+    //
+    // // Build mesh
+    // let mut terrain = Mesh::from(
+    //     Plane3d::default()
+    //         .mesh()
+    //         .size(terrain_width, terrain_height)
+    //         .subdivisions(sub_divisions),
+    // );
+    //
+    // // Transform heights of mesh
+    // if let Some(VertexAttributeValues::Float32x3(positions)) =
+    //     terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
+    // {
+    //     // TODO: Get data from file
+    //     let pix_meter = get_pix_m(1.0, srtm_data.num_rows as usize, 0.0008333, terrain_width);
+    //     let scale = pix_meter;
+    //     for pos in positions.iter_mut().enumerate() {
+    //         pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
+    //     }
+    //
+    //     // Add colour scheme
+    //     let colors: Vec<[f32; 4]> = positions
+    //         .iter()
+    //         .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
+    //         .collect();
+    //     terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
+    //     terrain.compute_normals();
+    // }
     // Build mesh
     let mut terrain = Mesh::from(
         Plane3d::default()
@@ -109,35 +147,16 @@ pub fn setup(
             .subdivisions(sub_divisions),
     );
 
-    // Transform heights of mesh
-    if let Some(VertexAttributeValues::Float32x3(positions)) =
-        terrain.attribute_mut(Mesh::ATTRIBUTE_POSITION)
-    {
-        // TODO: Get data from file
-        let pix_meter = get_pix_m(1.0, srtm_data.num_rows as usize, 0.0008333, terrain_width);
-        let scale = pix_meter;
-        for pos in positions.iter_mut().enumerate() {
-            pos.1[1] = srtm_data.terrain_data[pos.0] * scale;
-        }
-
-        // Add colour scheme
-        let colors: Vec<[f32; 4]> = positions
-            .iter()
-            .map(|[_, g, _]| get_height_color(*g / scale, ColorSpectrum::ImhofModified))
-            .collect();
-        terrain.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-        terrain.compute_normals();
-    }
 
     // Spawn terrain
-    commands.spawn((
-        Mesh3d(meshes.add(terrain)),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            ..Default::default()
-        })),
-        Transform::from_xyz(2000.0, 0.0, 0.0),
-        Terrain,
-    ));
+    // commands.spawn((
+    //     Mesh3d(meshes.add(terrain)),
+    //     MeshMaterial3d(materials.add(StandardMaterial {
+    //         ..Default::default()
+    //     })),
+    //     Transform::from_xyz(2000.0, 0.0, 0.0),
+    //     Terrain,
+    // ));
 }
 
 // TODO: Place in plugin_groundstructures or/and load from file

@@ -32,6 +32,7 @@ mod terrain;
 mod terrain_color_spectrum;
 mod plugin_sound;
 mod configuration;
+mod plugin_cursor;
 
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
@@ -76,7 +77,6 @@ async fn main() -> anyhow::Result<()> {
 
     // Set application name and run bevy and plugins
     let app_window = Some(Window {
-        title: "Luftraum".into(),
         ..default()
     });
 
@@ -87,6 +87,7 @@ async fn main() -> anyhow::Result<()> {
         }))
         .insert_resource(ShareStruct(bevy_plane_data_db))   
         .add_plugins(setup::plugin)             // camera, basic landscape, support gizmos
+        .add_plugins(plugin_cursor::plugin)     // Mouse cursor projection to ground
         .add_plugins(plugin_egui::plugin)       // egui
         .add_plugins(plugin_aircraft::plugin)   // aircraft related, setup, updates
         .add_plugins(plugin_sound::plugin)      // notifications

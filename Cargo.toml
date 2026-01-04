@@ -41,6 +41,7 @@ divan = "0.1.21"
 
 #[features]
 #dhat-heap = []
-#
-#[profile.release]
-#debug = true
+
+# Flamegraph
+[profile.release]
+debug = true
