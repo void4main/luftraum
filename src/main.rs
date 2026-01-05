@@ -43,6 +43,7 @@ async fn main() -> anyhow::Result<()> {
     let cfg = load_configuration("luftraum_config.toml");
     let config = cfg.unwrap_or_else(|err| {
         error!("Error loading 'luftraum_config.toml': {}", err);
+        eprintln!("Error loading 'luftraum_config.toml', {}", err);
         process::exit(1);
     });
 
