@@ -23,7 +23,7 @@ pub struct MqttBroker {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SbsServer {
-    pub _label: String,
+    pub label: String,
     pub sbs_hostname: String,
     pub sbs_port: u32,
 }
