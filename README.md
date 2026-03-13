@@ -11,7 +11,7 @@ For example, start `dump1090 --device-type hackrf --net-sbs-port 30003 --quiet` 
 Features
 * Egui, color coded special squawks, e.g. 7600
 * Dump all received raw data to file
-* With first GLB plane model
+* First GLB plane model
 * Some statistics
 * Flight path (optional)
 * Load network configuration from TOML file
