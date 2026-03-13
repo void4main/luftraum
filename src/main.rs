@@ -47,6 +47,9 @@ async fn main() -> anyhow::Result<()> {
         process::exit(1);
     });
 
+    // Temp
+    dump_aircraft_data_from_cache()?;
+
     // Create struct to store all aircraft data and share it between the network and bevy tasks.
     let plane_data_db = SharedDataDb::new();
     let shared_plane_data_db = Arc::new(Mutex::new(plane_data_db));

@@ -189,8 +189,8 @@ pub fn update_route(read: Res<ShareStruct>, mut gizmos: Gizmos, ui_state: Res<Ui
             }
 
             // TODO: Clean up this mess
-            if ui_state.plane_checkbox.contains_key(&plane.to_string()) {
-                let &checked = ui_state.plane_checkbox.get(&plane.to_string()).unwrap();
+            if ui_state.aircraft_checkbox.contains_key(&plane.to_string()) {
+                let &checked = ui_state.aircraft_checkbox.get(&plane.to_string()).unwrap();
                 if checked {
                     let ant_lat1 = map_range(53.5718392, 50.0, 55.0, 1000.0, -1000.0);
                     let ant_lon1 = map_range(9.9834842, 5.0, 10.0, -1000.0, 1000.0);
@@ -240,11 +240,10 @@ fn despawn_aircraft(
                     .1
                     .track_id
                     .map(|track| commands.entity(track).try_despawn());
-
                 // Remove Bevy entity
                 commands.entity(plane_id.0).despawn();
                 // Remove from Egui ui state
-                ui_state.plane_checkbox.remove(&plane_id.1.hex.clone());
+                ui_state.aircraft_checkbox.remove(&plane_id.1.hex.clone());
                 // Remove shared data
                 read_tmp.remove_plane(plane_id.1.hex.clone());
 
@@ -262,13 +261,18 @@ pub fn show_tracks(
 ) {
     for mut plane_id in query.iter_mut() {
         // Spawn track if aircraft is selected in egui and has not been built
-        // TODO: Bad solution, track isn't renewed
-        // There must be at least four stores position to generate the mesh
+        // There must be at least four stored positions to generate the mesh
         if plane_id.1.pos.len() >= 4 {
-            if *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id == None {
+            if *ui_state.selected(plane_id.1.hex.as_str()) {
                 // Build mesh only if useful
+                if plane_id.1.track_id.is_some() {
+                    plane_id
+                        .1
+                        .track_id
+                        .map(|track| commands.entity(track).try_despawn());
+                }
                 let all_pos = plane_id.1.pos.clone();
-                let mesh = plane_track_mesh(all_pos.clone()); // mesh is built here
+                let mesh = plane_track_mesh(all_pos); // mesh is built here
                 let id = commands
                     .spawn((
                         Mesh3d(meshes.add(mesh)),
@@ -282,7 +286,7 @@ pub fn show_tracks(
                     ))
                     .id();
                 plane_id.1.track_id = Some(id); // Save the entity id inside in hashmap
-            } else if ! *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id.is_some()
+            }  else if ! *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id.is_some()
             {
                 // Check if entity still exists and then despawn it (needed and didn't work in bevy 16.1)
                 let entity_id = plane_id.1.track_id.unwrap();

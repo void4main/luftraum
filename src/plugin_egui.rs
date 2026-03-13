@@ -24,13 +24,13 @@ pub struct UiState {
     pub min_speed: Option<f32>,
     pub max_speed: f32,
     // Checkbox for every active plane
-    pub plane_checkbox: HashMap<String, bool>,
+    pub aircraft_checkbox: HashMap<String, bool>,
 }
 
 impl UiState {
     // Check if a plane is selected
     pub fn selected(&mut self, key: &str) -> &mut bool {
-        self.plane_checkbox.entry(key.to_string()).or_insert(false)
+        self.aircraft_checkbox.entry(key.to_string()).or_insert(false)
     }
 }
 

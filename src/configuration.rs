@@ -11,7 +11,7 @@ pub struct Configuration {
     //terrain_srtm_file: Vec<TerrainSrtmFile>,
 }
 
-pub fn load_configuration(path: &str) -> bevy::prelude::Result<Configuration, Box<dyn Error>> {
+pub fn load_configuration(path: &str) -> Result<Configuration, Box<dyn Error>> {
     let raw = fs::read_to_string(path)?;
     let cfg: Configuration = toml::from_str(&raw)?;
     Ok(cfg)

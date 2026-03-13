@@ -54,7 +54,7 @@ fn get_transponder_codes() -> &'static HashMap<i32, (&'static str, TransponderCo
         map.insert(35, ("VFR / IFR Wechselverfahren", TransponderCodeColor::Green));
         map.insert(36, ("Einsatzflüge der Polizei", TransponderCodeColor::Blue));
         map.insert(37, ("Einsatzflüge der Polizei mit Restlichtverstärker", TransponderCodeColor::Blue));
-        map.insert(1000, ("IFR / Mode S Transponder Code", TransponderCodeColor::Green));
+        //map.insert(1000, ("IFR / Mode S Transponder Code", TransponderCodeColor::Green));
         map.insert(2000, ("Militärische Flüge im Nachttiefflugsystem", TransponderCodeColor::Orange));
         map.insert(7000, ("VFR-Flüge ziviler Luftfahrzeuge", TransponderCodeColor::Default));
 
