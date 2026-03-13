@@ -22,7 +22,7 @@ Features
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.2.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.3.png)
 
-### Hardware
+## Hardware
 Indoor setup
 * HackRF One
 
@@ -31,8 +31,8 @@ Outdoor setup
 * Jetvision A3 antenna (ADS-B 1090MHz, mounted at a height of 3m)
 * Publish data to MQTT broker (via dump1090 and Python script)
 
-### REFERENCES
-#### SRTM data source
+## REFERENCES
+### SRTM data source
 - Jarvis A., H.I. Reuter, A.  Nelson, E. Guevara, 2008, Hole-filled  seamless SRTM
 data V4, International  Centre for Tropical  Agriculture (CIAT), available  from
 http://srtm.csi.cgiar.org
@@ -41,6 +41,6 @@ http://srtm.csi.cgiar.org
 interpolation  methods  for  SRTM  data,  International  Journal  of  Geographic
 Information Science, 21:9, 983-1008.
 
-#### Plane model(s) data source
+### Plane model(s) data source
 - CC Attribution (http://creativecommons.org/licenses/by/4.0/)
 - Original 3d model by rocket0314 (https://sketchfab.com/rocket0314)
