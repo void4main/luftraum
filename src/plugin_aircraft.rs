@@ -1,8 +1,9 @@
-use std::time::Duration;
 use bevy::asset::RenderAssetUsages;
 use bevy::color::palettes::tailwind::{BLUE_500, RED_400, YELLOW_200, YELLOW_500};
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
+use std::time::Duration;
+use rand::prelude::*;
 
 use crate::ShareStruct;
 use crate::math::*;
@@ -33,9 +34,10 @@ struct TimerResource(Timer);
 // Copy of all positions
 #[derive(Component, Resource, Debug)]
 pub struct Aircraft {
-    pub hex: String,                // Aircraft hex-id
-    pub pos: Vec<[f32; 3]>,         // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
-    pub track_id: Option<Entity>,   // Bevy entity id of track
+    pub hex: String,              // Aircraft hex-id
+    pub pos: Vec<[f32; 3]>,       // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
+    pub track_id: Option<Entity>, // Bevy entity id of track
+    pub track_color: Option<Color>,  // Individual track color for each aircraft
 }
 
 impl Aircraft {
@@ -44,6 +46,7 @@ impl Aircraft {
             hex,
             pos: Vec::new(),
             track_id: None,
+            track_color: None,
         }
     }
 }
@@ -56,7 +59,10 @@ struct PositionIndicators {
 }
 
 // Create update all planes positions
-pub fn update_aircraft(mut query: Query<(&mut Transform, &mut Aircraft)>, read: ResMut<ShareStruct>) {
+pub fn update_aircraft(
+    mut query: Query<(&mut Transform, &mut Aircraft)>,
+    read: ResMut<ShareStruct>,
+) {
     // TODO: Beautify code
     let read_tmp = read.0.lock().unwrap();
     let plane_list: Vec<String> = read_tmp
@@ -81,7 +87,7 @@ pub fn update_aircraft(mut query: Query<(&mut Transform, &mut Aircraft)>, read: 
                     let altitude = pos.unwrap().2;
 
                     // TODO: Store scale in resource
-                    let scale = 0.00361;  // landscape px to m ratio
+                    let scale = 0.00361; // landscape px to m ratio
                     // ft -> m -> px
                     let altitude_px = altitude.to_meters() * scale;
                     plane.0.translation = Vec3::new(lon1, altitude_px, lat1);
@@ -234,7 +240,6 @@ fn despawn_aircraft(
             // Aircraft 'lifetime' if unseen
             // TODO: Setup time in egui and clean up process
             if read_tmp.get_last_seen(plane_id.1.hex.clone()) >= 60 {
-
                 // Remove track
                 plane_id
                     .1
@@ -246,7 +251,6 @@ fn despawn_aircraft(
                 ui_state.aircraft_checkbox.remove(&plane_id.1.hex.clone());
                 // Remove shared data
                 read_tmp.remove_plane(plane_id.1.hex.clone());
-
             }
         }
     }
@@ -260,46 +264,47 @@ pub fn show_tracks(
     mut ui_state: ResMut<UiState>,
 ) {
     for mut plane_id in query.iter_mut() {
-        // Spawn track if aircraft is selected in egui and has not been built
+        // Spawn track if aircraft is selected in egui
         // There must be at least four stored positions to generate the mesh
-        if plane_id.1.pos.len() >= 4 {
-            if *ui_state.selected(plane_id.1.hex.as_str()) {
-                // Build mesh only if useful
-                if plane_id.1.track_id.is_some() {
-                    plane_id
-                        .1
-                        .track_id
-                        .map(|track| commands.entity(track).try_despawn());
-                }
-                let all_pos = plane_id.1.pos.clone();
-                let mesh = plane_track_mesh(all_pos); // mesh is built here
-                let id = commands
-                    .spawn((
-                        Mesh3d(meshes.add(mesh)),
-                        MeshMaterial3d(materials.add(StandardMaterial {
-                            base_color: Color::srgb(0.2, 0.7, 0.9),
-                            cull_mode: None,
-                            double_sided: true,
-                            unlit: true,
-                            ..Default::default()
-                        })),
-                    ))
-                    .id();
-                plane_id.1.track_id = Some(id); // Save the entity id inside in hashmap
-            }  else if ! *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id.is_some()
-            {
-                // Check if entity still exists and then despawn it (needed and didn't work in bevy 16.1)
-                let entity_id = plane_id.1.track_id.unwrap();
-
-                if let Ok(_) = commands.get_entity(entity_id) {
-                    plane_id
-                        .1
-                        .track_id
-                        .map(|track| commands.entity(track).try_despawn());
-                }
-                plane_id.1.track_id = None;
-
+        if *ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.pos.len() >= 4 {
+            // Despawn old mesh
+            if plane_id.1.track_id.is_some() {
+                plane_id
+                    .1
+                    .track_id
+                    .map(|track| commands.entity(track).try_despawn());
             }
+
+            if plane_id.1.track_color.is_none() {
+                plane_id.1.track_color = Some(generate_track_color());
+            }
+
+            let all_pos = plane_id.1.pos.clone();
+            let mesh = plane_track_mesh(all_pos); // mesh is built here
+            let id = commands
+                .spawn((
+                    Mesh3d(meshes.add(mesh)),
+                    MeshMaterial3d(materials.add(StandardMaterial {
+                        base_color: plane_id.1.track_color.unwrap(),
+                        cull_mode: None,
+                        double_sided: true,
+                        unlit: true,
+                        ..Default::default()
+                    })),
+                ))
+                .id();
+            plane_id.1.track_id = Some(id); // Save the entity id inside in hashmap
+        } else if !*ui_state.selected(plane_id.1.hex.as_str()) && plane_id.1.track_id.is_some() {
+            // Check if entity still exists and then despawn it (needed and didn't work in bevy 16.1)
+            let entity_id = plane_id.1.track_id.unwrap();
+
+            if let Ok(_) = commands.get_entity(entity_id) {
+                plane_id
+                    .1
+                    .track_id
+                    .map(|track| commands.entity(track).try_despawn());
+            }
+            plane_id.1.track_id = None;
         }
     }
 }
@@ -345,4 +350,14 @@ fn plane_track_mesh(positions: Vec<[f32; 3]>) -> Mesh {
     mesh.insert_indices(Indices::U32(indices));
     mesh.compute_normals();
     mesh
+}
+
+fn generate_track_color() -> Color {
+    let mut rng = rand::rng();
+
+    let red = rng.random_range(0.1..1.0);
+    let green = rng.random_range(0.1..1.0);
+    let blue = rng.random_range(0.1..1.0);
+
+    Color::srgb(red, green, blue)
 }
