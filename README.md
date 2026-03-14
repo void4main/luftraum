@@ -20,7 +20,7 @@ Features
 
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.1.png)
 ![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.2.png)
-![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.3.png)
+![Luftraum](https://github.com/void4main/luftraum/blob/master/luftraum-screenshot-0.2.4.png)
 
 ## Hardware
 Indoor setup
