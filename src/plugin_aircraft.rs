@@ -288,7 +288,7 @@ pub fn show_tracks(
                         base_color: plane_id.1.track_color.unwrap(),
                         cull_mode: None,
                         double_sided: true,
-                        unlit: true,
+                        unlit: true,   // check what's better
                         ..Default::default()
                     })),
                 ))

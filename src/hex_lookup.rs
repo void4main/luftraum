@@ -19,6 +19,7 @@ pub struct Aircraft {
 }
 
 /// Fetch additional aircraft data 1st from kv-database then hexdb.io
+/// How often do these change? Do we need update cache after some time?
 pub async fn fetch_aircraft(hex_code: &str) -> Result<Option<Aircraft>, reqwest::Error> {
     // Is aircraft data already cached?
     // Errors are ignored, show must go on :-)
@@ -35,6 +36,7 @@ pub async fn fetch_aircraft(hex_code: &str) -> Result<Option<Aircraft>, reqwest:
             let result = fetch_aircraft_data_from_hexdbio(&hex_code).await;
             match result {
                 Ok(Some(aircraft)) => Ok(Some(aircraft)),
+                // Still not found
                 _ => Ok(None),
             }
         }
@@ -122,10 +124,13 @@ pub fn dump_aircraft_data_from_cache() -> Result<(), Error> {
     let store = Store::new(cfg)?;
     let bucket = store.bucket::<String, Json<Aircraft>>(None)?;
     for item in bucket.iter() {
+        // TODO: Clean up!
         let item = item?;
         // let key: String = item.key()?;
         let value: Json<Aircraft> = item.value()?;
-        println!("{:?}", value.0);
+        let value = value.into_inner();
+        let json_value = serde_json::to_value(&value)?;
+        println!("{}", json_value);
     }
     Ok(())
 }

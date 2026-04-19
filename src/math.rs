@@ -17,7 +17,7 @@ pub fn angle_rad_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
 }
 
 /// Calculates the Haversine distance between two geolocations
-/// and returns distance in km
+/// and returns distance in km.
 /// Uses Earth radius of 6378 km
 pub fn haversine_distance(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
     const EARTH_RADIUS_KM: f32 = 6378.0;
@@ -34,10 +34,11 @@ pub fn haversine_distance(lat1: f32, lon1: f32, lat2: f32, lon2: f32) -> f32 {
 
     // Haversine formula
     let a =
-        (d_lat / 2.0).sin().powi(2) + lat1_rad.cos() * lat2_rad.cos() * (d_lon / 2.0).sin().powi(2);
-    let c = 2.0 * a.sqrt().asin();
+        (d_lat / 2.0).sin().powi(2) +
+            lat1_rad.cos() * lat2_rad.cos() * (d_lon / 2.0).sin().powi(2);
+    let b = 2.0 * a.sqrt().asin();
 
-    EARTH_RADIUS_KM * c
+    EARTH_RADIUS_KM * b
 }
 
 pub fn get_pixel_pos(
