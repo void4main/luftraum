@@ -1,5 +1,4 @@
 use std::f32::consts::PI;
-use crate::TERRAIN_SETUP;
 
 pub fn angle_deg_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     let scalar_product = x_1 * x_2 + y_1 * y_2;
