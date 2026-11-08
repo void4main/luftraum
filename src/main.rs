@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::process;
 use bevy::prelude::*;
 
@@ -9,7 +9,6 @@ use crate::hex_lookup::*;
 use crate::network::*;
 
 use jemallocator::Jemalloc;
-
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
@@ -33,6 +32,21 @@ mod terrain_color_spectrum;
 mod plugin_sound;
 mod configuration;
 mod plugin_cursor;
+mod plugin_messages;
+
+struct TerrainVariables {
+    scale: f32,     // meter in pix
+    min_lat: f32,
+    max_lat: f32,
+    min_lon: f32,
+    max_lon: f32,
+    windows_x_min: f32,
+    windows_x_max: f32,
+    windows_y_min: f32,
+    windows_y_max: f32,
+}
+static TERRAIN_SETUP: OnceLock<Mutex<TerrainVariables>> = OnceLock::new();
+
 
 #[derive(Resource)]
 struct ShareStruct(Arc<Mutex<SharedDataDb>>);
@@ -72,9 +86,9 @@ async fn main() -> anyhow::Result<()> {
     // Receive ADS-B data from MQTT subscriptions
     for mqtt_brokers in config.mqtt_broker.into_iter() {
         for mqtt_broker in mqtt_brokers {
-            let tokio_plane_data_db_mqtt = shared_plane_data_db.clone();
+            let tokio_aircraft_data_db_mqtt = shared_plane_data_db.clone();
             tokio::spawn(async move {
-                let _ = connect_mqtt(&tokio_plane_data_db_mqtt, mqtt_broker).await;
+                let _ = connect_mqtt(&tokio_aircraft_data_db_mqtt, mqtt_broker).await;
             });
         }
     }
@@ -95,8 +109,9 @@ async fn main() -> anyhow::Result<()> {
         .add_plugins(plugin_egui::plugin)       // egui
         .add_plugins(plugin_aircraft::plugin)   // aircraft related, setup, updates
         .add_plugins(plugin_sound::plugin)      // notifications
+        //.add_plugins(plugin_messages::plugin)
         // .add_plugins(plugin_airspace::plugin)          // static airspace structures, e.g. no flight zones
-        // .add_plugins(plugin_ground_structures::plugin)
+        //.add_plugins(plugin_ground_structures::plugin)
         .run();
 
     Ok(())

@@ -1,4 +1,5 @@
 use std::f32::consts::PI;
+use crate::TERRAIN_SETUP;
 
 pub fn angle_deg_between(x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> f32 {
     let scalar_product = x_1 * x_2 + y_1 * y_2;
@@ -70,11 +71,20 @@ pub fn get_pix_m(meter: f32, rows: usize, rows_width_deg: f32, pixel_plane_y: f3
     pix_per_meter * meter
 }
 
-/// Linear mapping of two ranges
+/// Standard linear mapping of two ranges
+/// Maps latitude, longitude to pixel-coordinates
 pub fn map_range(value: f32, in_min: f32, in_max: f32, out_min: f32, out_max: f32) -> f32 {
+
     // Linear mapping of two ranges
     out_min + ((value - in_min) / (in_max - in_min)) * (out_max - out_min)
 }
+
+// pub fn map_range_terrain(value: f32) -> (f32, f32) {
+//     let terrain_variables = TERRAIN_SETUP.get().unwrap().lock().unwrap();
+//     (terrain_variables.windows_x_min + ((value - terrain_variables.min_lat) / (terrain_variables.max_lat - min_lat)) * (out_max - out_min),
+//      out_min + ((value - terrain_variables.min_lon) / (terrain_variables.max_lon - max_lon)) * (out_max - out_min)
+//     )
+// }
 
 pub fn get_number_triangles(subs: usize) -> usize {
     (subs + 1) * (subs + 1) * 2

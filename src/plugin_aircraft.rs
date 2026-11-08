@@ -10,7 +10,6 @@ use crate::math::*;
 use crate::plugin_egui::*;
 
 pub fn plugin(app: &mut App) {
-    //app.add_systems(Startup, spawn_plane)
     app.insert_resource(TimerResource(Timer::new(
         Duration::from_secs(10),
         TimerMode::Repeating,
@@ -18,6 +17,7 @@ pub fn plugin(app: &mut App) {
     .add_systems(
         Update,
         (
+
             create_aircraft,
             update_aircraft,
             update_route,
@@ -32,7 +32,8 @@ pub fn plugin(app: &mut App) {
 struct TimerResource(Timer);
 
 // Copy of all positions
-#[derive(Component, Resource, Debug)]
+//#[derive(Component, Resource, Debug)]
+#[derive(Component, Debug)]
 pub struct Aircraft {
     pub hex: String,              // Aircraft hex-id
     pub pos: Vec<[f32; 3]>,       // Collects all [lat, lon, alt] to show flight path in Bevy coordinates
@@ -54,8 +55,8 @@ impl Aircraft {
 // Create two spheres under aircraft for testing
 #[derive(Resource)]
 struct PositionIndicators {
-    left: Entity,
-    right: Entity,
+    left_sphere: Entity,
+    right_sphere: Entity,
 }
 
 // Create update all planes positions
@@ -130,14 +131,14 @@ pub fn create_aircraft(
         if !spawned_list.contains(&plane_id_tmp) {
             // Beim Spawnen
             let mut child_entities = PositionIndicators {
-                left: Entity::PLACEHOLDER,
-                right: Entity::PLACEHOLDER,
+                left_sphere: Entity::PLACEHOLDER,
+                right_sphere: Entity::PLACEHOLDER,
             };
 
             commands
                 .spawn((
                     Aircraft::new(plane_id_tmp),
-                    SceneRoot(
+                    WorldAssetRoot(
                         asset_server
                             .load(GltfAssetLabel::Scene(0).from_asset("planes/plane-b.glb")),
                     ),
@@ -145,14 +146,14 @@ pub fn create_aircraft(
                     Transform::from_xyz(-1000.0, 0.0, 0.0).with_scale(Vec3::splat(1.0)),
                 ))
                 .with_children(|parent| {
-                    child_entities.left = parent
+                    child_entities.left_sphere = parent
                         .spawn((
                             Mesh3d(meshes.add(Sphere::new(0.5))),
                             MeshMaterial3d(materials.add(Color::Srgba(BLUE_500))),
                             Transform::from_xyz(2.0, 0.0, 0.0),
                         ))
                         .id();
-                    child_entities.right = parent
+                    child_entities.right_sphere = parent
                         .spawn((
                             Mesh3d(meshes.add(Sphere { radius: 0.5 })),
                             MeshMaterial3d(materials.add(Color::Srgba(RED_400))),

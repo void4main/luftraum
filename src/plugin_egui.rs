@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use bevy_egui::egui::{Color32, RichText};
 use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
 
-use crate::plugin_sound::*;
+// use crate::plugin_sound::*;
 use crate::squawks::get_transponder_description;
 use crate::data_share::*;
 
@@ -45,8 +45,6 @@ fn ui_system(
     mut contexts: EguiContexts,
     read: Res<ShareStruct>,
     mut ui_state: ResMut<UiState>,
-    cooldown: Res<SoundCooldown>,
-    mut event_writer: MessageWriter<PlaySoundEvent>,
 ) {
     let read_tmp = read.0.lock().unwrap();
     let plane_list = read_tmp.get_planes_id();
@@ -132,11 +130,11 @@ fn ui_system(
                                     squawk_description = squawk.0.to_string();
 
                                     // Check sound notification is turned on and if already triggered lately
-                                    if ui_state.notification_sound && cooldown.timer.is_finished() {
-                                        event_writer.write(PlaySoundEvent {
-                                            sound_type: SoundType::Attention,
-                                        });
-                                    }
+                                    // if ui_state.notification_sound && cooldown.timer.is_finished() {
+                                    //     event_writer.write(PlaySoundEvent {
+                                    //         sound_type: SoundType::Attention,
+                                    //     });
+                                    // }
 
                                 }
                                 squawk_str = squawk_tmp.to_string();

@@ -1,10 +1,28 @@
 use bevy::prelude::*;
 
-//#[derive(Event)]
-#[derive(Message)]
-pub struct PlaySoundEvent {
-    pub sound_type: SoundType,
+#[derive(Resource, Deref)]
+struct SoundEffect {
+    handle: Handle<AudioSource>,
 }
+
+// We can set up the logic for how to load our assets in the `FromWorld` trait.
+// This code is called via `init_resource`.
+impl FromWorld for SoundEffect {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+        SoundEffect {
+            handle: asset_server.load("sounds/luftraum_attention.ogg"),
+        }
+    }
+}
+
+// -------
+
+//#[derive(Event)]
+// #[derive(Message)]
+// pub struct PlaySoundEvent {
+//     pub sound_type: SoundType,
+// }
 
 #[derive(Clone)]
 pub enum SoundType {
@@ -22,37 +40,38 @@ pub struct SoundCooldown {
 }
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, sound_setup)
-        .add_event::<PlaySoundEvent>()
-        .insert_resource(SoundCooldown {
-            timer: Timer::from_seconds(60.0, TimerMode::Once),
-        })
-        .add_systems(Update, (play_sound_on_event, update_cooldown));
+    //app.add_systems(Startup, sound_setup)
+        //.add_event::<PlaySoundEvent>()
+        app.init_resource::<SoundEffect>();
+        //.insert_resource(SoundCooldown {
+        //    timer: Timer::from_seconds(60.0, TimerMode::Once),
+        //})
+        //.add_systems(Update, (play_sound_on_event, update_cooldown));
 }
 
-fn sound_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Lade Sound-Dateien
-    let sounds = LuftraumSounds {
-        fx_attention: asset_server.load("sounds/luftraum_attention.ogg"),
-    };
-    commands.insert_resource(sounds);
-}
-
-fn update_cooldown(time: Res<Time>, mut cooldown: ResMut<SoundCooldown>) {
-    cooldown.timer.tick(time.delta());
-}
-
-fn play_sound_on_event(
-    mut commands: Commands,
-    mut events: MessageReader<PlaySoundEvent>,
-    sounds: Res<LuftraumSounds>,
-    mut cooldown: ResMut<SoundCooldown>,
-) {
-    for event in events.read() {
-        let sound_handle = match event.sound_type {
-            SoundType::Attention => sounds.fx_attention.clone(),
-        };
-        commands.spawn((AudioPlayer::new(sound_handle),));
-        cooldown.timer.reset();
-    }
-}
+// fn sound_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+//     // Lade Sound-Dateien
+//     let sounds = LuftraumSounds {
+//         fx_attention: asset_server.load("sounds/luftraum_attention.ogg"),
+//     };
+//     commands.insert_resource(sounds);
+// }
+//
+// fn update_cooldown(time: Res<Time>, mut cooldown: ResMut<SoundCooldown>) {
+//     cooldown.timer.tick(time.delta());
+// }
+//
+// fn play_sound_on_event(
+//     mut commands: Commands,
+//     mut events: MessageReader<PlaySoundEvent>,
+//     sounds: Res<LuftraumSounds>,
+//     mut cooldown: ResMut<SoundCooldown>,
+// ) {
+//     for event in events.read() {
+//         let sound_handle = match event.sound_type {
+//             SoundType::Attention => sounds.fx_attention.clone(),
+//         };
+//         commands.spawn((AudioPlayer::new(sound_handle),));
+//         cooldown.timer.reset();
+//     }
+// }

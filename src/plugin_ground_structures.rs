@@ -1,16 +1,28 @@
 // Everything static on ground level, e.g. airports, static antenna positions, city markers.
 
+use crate::math::map_range;
+use bevy::app::{App, Update};
 use bevy::color::palettes::tailwind::{GREEN_400, PURPLE_600, YELLOW_200};
 use bevy::math::Vec3;
 use bevy::prelude::Gizmos;
-use crate::math::map_range;
+use crate::TERRAIN_SETUP;
+
+pub fn plugin(app: &mut App) {
+    app.add_systems(Update, (support_structures,));
+}
 
 // TODO: Place in plugin_groundstructures or/and load from file/db
 pub fn support_structures(mut gizmos: Gizmos) {
+    let scale = TERRAIN_SETUP.get().unwrap().lock().unwrap().scale;
+    let min_lat = TERRAIN_SETUP.get().unwrap().lock().unwrap().min_lat;
+    let max_lat = TERRAIN_SETUP.get().unwrap().lock().unwrap().max_lat;
+    let min_lon = TERRAIN_SETUP.get().unwrap().lock().unwrap().min_lon;
+    let max_lon = TERRAIN_SETUP.get().unwrap().lock().unwrap().max_lon;
+
     // Antennenposition 53.5718392,9.9834842
-    let lat1 = map_range(53.5718392, 50.0, 55.0, 1000.0, -1000.0);
-    let lon1 = map_range(9.9834842, 5.0, 10.0, -1000.0, 1000.0);
-    let scale = 0.00361;
+    let lat1 = map_range(53.5718392, min_lat, max_lat, 1000.0, -1000.0);
+    let lon1 = map_range(9.9834842, min_lon, max_lon, -1000.0, 1000.0);
+    
     gizmos.cross(Vec3::new(lon1, 10.0 * scale, lat1), 15.5, PURPLE_600);
 
     // HH Flughafen
